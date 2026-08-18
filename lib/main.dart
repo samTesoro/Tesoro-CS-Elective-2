@@ -1,300 +1,304 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 void main() {
-  runApp(const NetflixClone());
+  runApp(const MyApp());
 }
 
-class NetflixClone extends StatelessWidget {
-  const NetflixClone({super.key});
+// --------------------------------------------------
+// APP
+// --------------------------------------------------
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      home: const HomeScreen(),
+      title: 'Fruit App',
+      routerConfig: router,
     );
   }
 }
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+// --------------------------------------------------
+// GO ROUTER
+// --------------------------------------------------
 
-  Widget chip(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 18,
-        vertical: 10,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white24,
-        borderRadius: BorderRadius.circular(30),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(color: Colors.white),
-      ),
-    );
-  }
+final GoRouter router = GoRouter(
+  initialLocation: '/',
 
-  Widget movieCard(String image) {
-    return Container(
-      margin: const EdgeInsets.only(right: 10),
-      width: 140,
-      height: 180,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        image: DecorationImage(
-          image: AssetImage(image),
-          fit: BoxFit.cover,
+  routes: [
+    // HOME PAGE
+    GoRoute(
+      path: '/',
+      builder: (context, state) {
+        return const FruitListPage();
+      },
+
+      // NESTED FRUIT ROUTE
+      routes: [
+        GoRoute(
+          path: 'fruit/apple',
+          builder: (context, state) {
+            return const FruitDetailPage(
+              name: 'Apple',
+              image: 'assets/apple.png',
+            );
+          },
         ),
-      ),
-    );
-  }
+
+        GoRoute(
+          path: 'fruit/banana',
+          builder: (context, state) {
+            return const FruitDetailPage(
+              name: 'Banana',
+              image: 'assets/banana.png',
+            );
+          },
+        ),
+
+        GoRoute(
+          path: 'fruit/orange',
+          builder: (context, state) {
+            return const FruitDetailPage(
+              name: 'Orange',
+              image: 'assets/orange.png',
+            );
+          },
+        ),
+
+        GoRoute(
+          path: 'fruit/grapes',
+          builder: (context, state) {
+            return const FruitDetailPage(
+              name: 'Grapes',
+              image: 'assets/grapes.png',
+            );
+          },
+        ),
+
+        GoRoute(
+          path: 'fruit/watermelon',
+          builder: (context, state) {
+            return const FruitDetailPage(
+              name: 'Watermelon',
+              image: 'assets/watermelon.png',
+            );
+          },
+        ),
+
+        GoRoute(
+          path: 'fruit/strawberry',
+          builder: (context, state) {
+            return const FruitDetailPage(
+              name: 'Strawberry',
+              image: 'assets/strawberry.png',
+            );
+          },
+        ),
+      ],
+    ),
+  ],
+);
+
+// --------------------------------------------------
+// FRUIT LIST PAGE
+// --------------------------------------------------
+
+class FruitListPage extends StatelessWidget {
+  const FruitListPage({super.key});
+
+  final List<Map<String, String>> fruits = const [
+    {
+      'name': 'Apple',
+      'route': '/fruit/apple',
+      'image': 'assets/apple.png',
+    },
+    {
+      'name': 'Banana',
+      'route': '/fruit/banana',
+      'image': 'assets/banana.png',
+    },
+    {
+      'name': 'Orange',
+      'route': '/fruit/orange',
+      'image': 'assets/orange.png',
+    },
+    {
+      'name': 'Grapes',
+      'route': '/fruit/grapes',
+      'image': 'assets/grapes.png',
+    },
+    {
+      'name': 'Watermelon',
+      'route': '/fruit/watermelon',
+      'image': 'assets/watermelon.png',
+    },
+    {
+      'name': 'Strawberry',
+      'route': '/fruit/strawberry',
+      'image': 'assets/strawberry.png',
+    },
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.grey[100],
 
-      body: Stack(
-        children: [
-
-          /// Background
-          SizedBox(
-            width: double.infinity,
-            height: double.infinity,
-            child: Image.asset(
-              "assets/atlas.jpg",
-              fit: BoxFit.cover,
-            ),
+      appBar: AppBar(
+        title: const Text(
+          'Fruits',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
           ),
-
-          /// Dark Overlay
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.transparent,
-                  Colors.black54,
-                  Colors.black,
-                ],
-              ),
-            ),
-          ),
-
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-
-                children: [
-
-                  /// Header
-                  Row(
-                    children: [
-
-                      const Text(
-                        "For Debbie",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 30,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-
-                      const Spacer(),
-
-                      IconButton(
-                        onPressed: () {},
-                        icon: const Icon(
-                          Icons.cast,
-                          color: Colors.white,
-                        ),
-                      ),
-
-                      IconButton(
-                        onPressed: () {},
-                        icon: const Icon(
-                          Icons.search,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 15),
-
-                  /// Chips
-                  Row(
-                    mainAxisAlignment:
-                        MainAxisAlignment.spaceBetween,
-                    children: [
-
-                      chip("TV Shows"),
-
-                      chip("Movies"),
-
-                      chip("Categories"),
-                    ],
-                  ),
-
-                  const Spacer(),
-
-                  /// Movie Title
-                  const Text(
-                    "Atlas",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 48,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  const Text(
-                    "Science fiction • Action",
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 18,
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  /// Buttons
-                  Row(
-                    children: [
-
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 15,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius:
-                              BorderRadius.circular(10),
-                          border: Border.all(
-                            color: Colors.white54,
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.add,
-                          color: Colors.white,
-                        ),
-                      ),
-
-                      const SizedBox(width: 15),
-
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () {},
-                          icon: const Icon(
-                            Icons.play_arrow,
-                          ),
-                          label: const Text("Play"),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: Colors.black,
-                            padding:
-                                const EdgeInsets.symmetric(
-                                    vertical: 16),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 30),
-
-                  Row(
-                    children: const [
-
-                      Text(
-                        "My List",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-
-                      Spacer(),
-
-                      Text(
-                        "See all",
-                        style: TextStyle(
-                          color: Colors.white70,
-                        ),
-                      ),
-
-                      SizedBox(width: 5),
-
-                      Icon(
-                        Icons.chevron_right,
-                        color: Colors.white70,
-                      )
-                    ],
-                  ),
-
-                  const SizedBox(height: 15),
-
-                  SizedBox(
-                    height: 180,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      children: [
-
-                        movieCard("assets/movie1.jpg"),
-
-                        movieCard("assets/movie2.jpg"),
-
-                        movieCard("assets/movie1.jpg"),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 15),
-                ],
-              ),
-            ),
-          ),
-        ],
+        ),
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
       ),
 
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: const Color(0xff24232A),
-        selectedItemColor: Colors.amber,
-        unselectedItemColor: Colors.white,
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16),
 
-        type: BottomNavigationBarType.fixed,
+        itemCount: fruits.length,
 
-        items: const [
+        itemBuilder: (context, index) {
+          final fruit = fruits[index];
 
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: "Home",
-          ),
+          return Card(
+            elevation: 3,
+            margin: const EdgeInsets.only(bottom: 14),
 
-          BottomNavigationBarItem(
-            icon: Icon(Icons.explore),
-            label: "",
-          ),
+            child: ListTile(
+              contentPadding: const EdgeInsets.all(10),
 
-          BottomNavigationBarItem(
-            icon: Icon(Icons.video_library),
-            label: "",
-          ),
+              // FRUIT IMAGE
+              leading: Image.asset(
+                fruit['image']!,
+                width: 60,
+                height: 60,
+                fit: BoxFit.contain,
+              ),
 
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: "",
-          ),
-        ],
+              // FRUIT NAME
+              title: Text(
+                fruit['name']!,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              subtitle: const Text(
+                'View fruit',
+              ),
+
+              trailing: const Icon(
+                Icons.arrow_forward_ios,
+              ),
+
+              // GO TO FRUIT ROUTE
+              onTap: () {
+                context.go(
+                  fruit['route']!,
+                );
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// --------------------------------------------------
+// FRUIT DETAIL PAGE
+// --------------------------------------------------
+
+class FruitDetailPage extends StatelessWidget {
+  final String name;
+  final String image;
+
+  const FruitDetailPage({
+    super.key,
+    required this.name,
+    required this.image,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+
+      appBar: AppBar(
+        title: Text(name),
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
+      ),
+
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+
+          children: [
+            // LARGE FRUIT IMAGE
+            Container(
+              width: 250,
+              height: 250,
+
+              padding: const EdgeInsets.all(20),
+
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(20),
+              ),
+
+              child: Image.asset(
+                image,
+                fit: BoxFit.contain,
+              ),
+            ),
+
+            const SizedBox(height: 30),
+
+            // FRUIT NAME
+            Text(
+              name,
+              style: const TextStyle(
+                fontSize: 40,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 30),
+
+            // BACK BUTTON
+            ElevatedButton.icon(
+              onPressed: () {
+                context.go('/');
+              },
+
+              icon: const Icon(
+                Icons.arrow_back,
+              ),
+
+              label: const Text(
+                'Back to Fruits',
+              ),
+
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 14,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
