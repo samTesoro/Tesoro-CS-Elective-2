@@ -5,10 +5,6 @@ void main() {
   runApp(const MyApp());
 }
 
-// --------------------------------------------------
-// APP
-// --------------------------------------------------
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -21,10 +17,6 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
-// --------------------------------------------------
-// GO ROUTER
-// --------------------------------------------------
 
 final GoRouter router = GoRouter(
   initialLocation: '/',
@@ -102,10 +94,6 @@ final GoRouter router = GoRouter(
     ),
   ],
 );
-
-// --------------------------------------------------
-// FRUIT LIST PAGE
-// --------------------------------------------------
 
 class FruitListPage extends StatelessWidget {
   const FruitListPage({super.key});
@@ -212,10 +200,6 @@ class FruitListPage extends StatelessWidget {
     );
   }
 }
-
-// --------------------------------------------------
-// FRUIT DETAIL PAGE
-// --------------------------------------------------
 
 class FruitDetailPage extends StatelessWidget {
   final String name;
