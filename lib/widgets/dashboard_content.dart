@@ -31,40 +31,40 @@ class DashboardContent extends StatelessWidget {
               const SizedBox(height: 20),
 
               OrientationBuilder(
-  builder: (context, orientation) {
-    final isPortrait =
-        orientation == Orientation.portrait;
+              builder: (context, orientation) {
+                final isPortrait =
+                    orientation == Orientation.portrait;
 
-    return GridView.count(
-      crossAxisCount: isPortrait
-          ? columns
-          : columns + 1,
-      shrinkWrap: true,
-      physics:
-          const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      children: const [
-        DashboardCard(
-          title: 'Analytics',
-          icon: Icons.analytics_outlined,
-        ),
-        DashboardCard(
-          title: 'Users',
-          icon: Icons.people_outline,
-        ),
-        DashboardCard(
-          title: 'Messages',
-          icon: Icons.message_outlined,
-        ),
-        DashboardCard(
-          title: 'Settings',
-          icon: Icons.settings_outlined,
-        ),
-      ],
-    );
-  },
-),
+                return GridView.count(
+                  crossAxisCount: isPortrait
+                      ? columns
+                      : columns + 1,
+                  shrinkWrap: true,
+                  physics:
+                      const NeverScrollableScrollPhysics(),
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  children: const [
+                    DashboardCard(
+                      title: 'Analytics',
+                      icon: Icons.analytics_outlined,
+                    ),
+                    DashboardCard(
+                      title: 'Users',
+                      icon: Icons.people_outline,
+                    ),
+                    DashboardCard(
+                      title: 'Messages',
+                      icon: Icons.message_outlined,
+                    ),
+                    DashboardCard(
+                      title: 'Settings',
+                      icon: Icons.settings_outlined,
+                    ),
+                  ],
+                );
+              },
+            ),
 
               const SizedBox(height: 20),
 
