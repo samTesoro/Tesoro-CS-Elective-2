@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
-  // Reusable wireframe box
   Widget box({double height = 100}) {
     return Container(
       height: height,
@@ -16,7 +15,6 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  // Reusable menu item
   Widget menuItem(IconData icon, String label) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -36,7 +34,6 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  // Sidebar / Drawer content
   Widget sidebar({bool isDrawer = false}) {
     return Container(
       width: isDrawer ? double.infinity : 220,
@@ -59,7 +56,6 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  // Main dashboard content
   Widget content(int columns) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -93,7 +89,6 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Platform detection
     final isIOS = !kIsWeb &&
         defaultTargetPlatform == TargetPlatform.iOS;
 
@@ -101,14 +96,12 @@ class DashboardScreen extends StatelessWidget {
       builder: (context, constraints) {
         final width = constraints.maxWidth;
 
-        // Responsive breakpoints
         final isMobile = width < 600;
         final isDesktop = width >= 1000;
 
         return Scaffold(
           backgroundColor: Colors.grey.shade300,
 
-          // Drawer for Mobile and Tablet
           drawer: isDesktop
               ? null
               : Drawer(
@@ -117,7 +110,6 @@ class DashboardScreen extends StatelessWidget {
                   ),
                 ),
 
-          // Adaptive App Bar
           appBar: isDesktop
               ? null
               : isIOS
@@ -145,16 +137,13 @@ class DashboardScreen extends StatelessWidget {
           body: isDesktop
               ? Row(
                   children: [
-                    // Desktop Sidebar
                     sidebar(),
 
-                    // Main Content
                     Expanded(
                       flex: 3,
                       child: content(4),
                     ),
 
-                    // Right-side placeholders
                     Expanded(
                       child: Padding(
                         padding: const EdgeInsets.all(16),
@@ -169,8 +158,6 @@ class DashboardScreen extends StatelessWidget {
                     ),
                   ],
                 )
-
-              // Mobile and Tablet
               : content(isMobile ? 2 : 4),
         );
       },
