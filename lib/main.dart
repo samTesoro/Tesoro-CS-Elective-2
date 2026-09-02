@@ -1,22 +1,26 @@
 import 'package:flutter/material.dart';
-import 'dashboard_screen.dart';
+import 'screens/home_screen.dart';
+import 'theme.dart';
 
 void main() {
-  runApp(const ResponsiveAdaptiveApp());
+  runApp(const MyApp());
 }
 
-class ResponsiveAdaptiveApp extends StatelessWidget {
-  const ResponsiveAdaptiveApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: "Tesoro's Printing Press",
+
       debugShowCheckedModeBanner: false,
-      title: 'Responsive Dashboard',
-      theme: ThemeData(
-        useMaterial3: true,
-      ),
-      home: const DashboardScreen(),
+
+      theme: lightTheme,
+      darkTheme: darkTheme,
+      themeMode: ThemeMode.system,
+
+      home: const HomeScreen(),
     );
   }
 }
