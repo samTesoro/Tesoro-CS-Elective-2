@@ -345,7 +345,7 @@ class _CategorySection extends StatelessWidget {
           columnCount = 2;
         }
 
-        final cardAspectRatio = constraints.maxWidth < 600 ? 0.86 : 0.96;
+        final cardAspectRatio = constraints.maxWidth < 600 ? 0.68 : 0.78;
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 40),
