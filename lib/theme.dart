@@ -5,129 +5,73 @@ const mainRed = Color(0xFFC8102E);
 const darkRed = Color(0xFF8E0B20);
 const accentRed = Color(0xFFE31B23);
 
-// Light Theme
-final ThemeData lightTheme = ThemeData(
-  useMaterial3: true,
-  colorScheme: ColorScheme.fromSeed(
-    seedColor: mainRed,
-    primary: mainRed,
-    secondary: darkRed,
-    brightness: Brightness.light,
-  ),
+ThemeData createTheme(Brightness brightness) {
+  final isDark = brightness == Brightness.dark;
+  final primaryColor = isDark ? accentRed : mainRed;
 
-  scaffoldBackgroundColor: const Color(0xFFF7F7F7),
-
-  appBarTheme: const AppBarTheme(
-    backgroundColor: mainRed,
-    foregroundColor: Colors.white,
-    centerTitle: true,
-    elevation: 0,
-  ),
-
-  cardTheme: CardThemeData(
-    color: Colors.white,
-    elevation: 2,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
+  return ThemeData(
+    useMaterial3: true,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: mainRed,
+      primary: primaryColor,
+      secondary: isDark ? mainRed : darkRed,
+      brightness: brightness,
     ),
-  ),
-
-  elevatedButtonTheme: ElevatedButtonThemeData(
-    style: ElevatedButton.styleFrom(
-      backgroundColor: mainRed,
+    scaffoldBackgroundColor:
+        isDark ? const Color(0xFF121212) : const Color(0xFFF7F7F7),
+    appBarTheme: AppBarTheme(
+      backgroundColor: isDark ? darkRed : mainRed,
       foregroundColor: Colors.white,
-      padding: const EdgeInsets.symmetric(
-        horizontal: 24,
-        vertical: 14,
-      ),
+      centerTitle: true,
+      elevation: 0,
+    ),
+    cardTheme: CardThemeData(
+      color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+      elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
       ),
     ),
-  ),
-
-  outlinedButtonTheme: OutlinedButtonThemeData(
-    style: OutlinedButton.styleFrom(
-      foregroundColor: mainRed,
-      side: const BorderSide(color: mainRed),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: primaryColor,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
       ),
     ),
-  ),
-
-  textTheme: const TextTheme(
-    headlineLarge: TextStyle(
-      fontSize: 28,
-      fontWeight: FontWeight.bold,
-    ),
-    headlineMedium: TextStyle(
-      fontSize: 22,
-      fontWeight: FontWeight.bold,
-    ),
-    titleLarge: TextStyle(
-      fontSize: 18,
-      fontWeight: FontWeight.w600,
-    ),
-    bodyLarge: TextStyle(
-      fontSize: 16,
-    ),
-    bodyMedium: TextStyle(
-      fontSize: 14,
-      color: Colors.grey,
-    ),
-  ),
-);
-
-// Dark Theme
-final ThemeData darkTheme = ThemeData(
-  useMaterial3: true,
-
-  colorScheme: ColorScheme.fromSeed(
-    seedColor: mainRed,
-    primary: accentRed,
-    secondary: mainRed,
-    brightness: Brightness.dark,
-  ),
-
-  scaffoldBackgroundColor: const Color(0xFF121212),
-
-  appBarTheme: const AppBarTheme(
-    backgroundColor: darkRed,
-    foregroundColor: Colors.white,
-    centerTitle: true,
-    elevation: 0,
-  ),
-
-  cardTheme: CardThemeData(
-    color: const Color(0xFF1E1E1E),
-    elevation: 2,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
-    ),
-  ),
-
-  elevatedButtonTheme: ElevatedButtonThemeData(
-    style: ElevatedButton.styleFrom(
-      backgroundColor: accentRed,
-      foregroundColor: Colors.white,
-      padding: const EdgeInsets.symmetric(
-        horizontal: 24,
-        vertical: 14,
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: primaryColor,
+        side: BorderSide(color: primaryColor),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
       ),
     ),
-  ),
-
-  outlinedButtonTheme: OutlinedButtonThemeData(
-    style: OutlinedButton.styleFrom(
-      foregroundColor: accentRed,
-      side: const BorderSide(color: accentRed),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
+    textTheme: TextTheme(
+      headlineLarge: const TextStyle(
+        fontSize: 28,
+        fontWeight: FontWeight.bold,
+      ),
+      headlineMedium: const TextStyle(
+        fontSize: 22,
+        fontWeight: FontWeight.bold,
+      ),
+      titleLarge: const TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+      ),
+      bodyLarge: const TextStyle(fontSize: 16),
+      bodyMedium: TextStyle(
+        fontSize: 14,
+        color: isDark ? Colors.grey.shade400 : Colors.grey,
       ),
     ),
-  ),
-);
+  );
+}
+
+final lightTheme = createTheme(Brightness.light);
+final darkTheme = createTheme(Brightness.dark);
