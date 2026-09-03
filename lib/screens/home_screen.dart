@@ -77,8 +77,8 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Image.asset(
               'assets/logo.png',
-              height: 52,
-              width: 52,
+              height: 60,
+              width: 70,
             ),
 
             const SizedBox(width: 12),
@@ -197,12 +197,40 @@ class _HomeScreenState extends State<HomeScreen> {
                                 children: [
                                 
                                   const SizedBox(height: 8),
-                                  Text(
-                                    "TESORO'S PRINTING PRESS",
-                                    style: theme.textTheme.headlineLarge
-                                        ?.copyWith(
-                                          color: heroTextColor,
-                                        ),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'QUALITY PRINTS SINCE ',
+                                        style: theme.textTheme.headlineLarge
+                                            ?.copyWith(
+                                              color: heroTextColor,
+                                            ),
+                                      ),
+                                      Stack(
+                                        alignment: Alignment.center,
+                                        children: [
+                                          Text(
+                                            '1965',
+                                            style: theme.textTheme.headlineLarge
+                                                ?.copyWith(
+                                                  foreground: Paint()
+                                                    ..style = PaintingStyle.stroke
+                                                    ..strokeWidth = 1.5
+                                                    ..color = theme
+                                                        .colorScheme.onPrimary,
+                                                ),
+                                          ),
+                                          Text(
+                                            '1965',
+                                            style: theme.textTheme.headlineLarge
+                                                ?.copyWith(
+                                                  color: theme.colorScheme.primary,
+                                                ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
                                   const SizedBox(height: 10),
                                   Text(
@@ -268,6 +296,8 @@ class _CategorySection extends StatelessWidget {
           columnCount = 2;
         }
 
+        final cardAspectRatio = constraints.maxWidth < 600 ? 0.45 : 0.58;
+
         return Padding(
           padding: const EdgeInsets.only(bottom: 40),
           child: Column(
@@ -289,7 +319,7 @@ class _CategorySection extends StatelessWidget {
                   crossAxisCount: columnCount,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
-                  childAspectRatio: 0.58,
+                  childAspectRatio: cardAspectRatio,
                 ),
                 itemBuilder: (context, index) {
                   return ProductCard(
