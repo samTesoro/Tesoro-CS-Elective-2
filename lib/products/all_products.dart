@@ -5,7 +5,7 @@ const List<Product> allProducts = [
   Product(
     name: 'Epson EcoTank L3210',
     price: 8995,
-    imagePath: '',
+    imagePath: 'assets/L3210.jpg',
     category: 'Printers',
   ),
   Product(

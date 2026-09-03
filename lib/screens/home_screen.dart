@@ -34,11 +34,19 @@ class _HomeScreenState extends State<HomeScreen> {
     'Brochures': GlobalKey(),
     'Tarpaulins': GlobalKey(),
   };
-  String _selectedCategory = 'Printers';
+  final List<IconData> _categoryIcons = [
+    Icons.print_outlined,
+    Icons.description_outlined,
+    Icons.menu_book_outlined,
+    Icons.image_outlined,
+  ];
+  int _selectedNavIndex = 0;
 
   void _scrollToCategory(String category) {
     setState(() {
-      _selectedCategory = category;
+      _selectedNavIndex = categories.indexOf(category) >= 2
+          ? categories.indexOf(category) + 1
+          : categories.indexOf(category);
     });
 
     final context = _categoryKeys[category]?.currentContext;
@@ -114,61 +122,12 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
 
-      // Category Navigation
-      body: Column(
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(8),
-            color: theme.colorScheme.surfaceContainer,
-            child: Row(
-              children: categories.map((category) {
-                final isSelected = _selectedCategory == category;
-
-                return Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 2),
-                    child: Material(
-                      color: isSelected
-                          ? theme.colorScheme.primary
-                          : theme.colorScheme.surface.withValues(alpha: 0),
-                      borderRadius: BorderRadius.circular(10),
-                      child: InkWell(
-                        onTap: () => _scrollToCategory(category),
-                        borderRadius: BorderRadius.circular(10),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 12,
-                          ),
-                          child: Text(
-                            category,
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.labelLarge?.copyWith(
-                              color: isSelected
-                                  ? theme.colorScheme.onPrimary
-                                  : theme.colorScheme.onSurfaceVariant,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-
-          Expanded(
-            child: SingleChildScrollView(
-              controller: _scrollController,
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+      body: SingleChildScrollView(
+        controller: _scrollController,
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
                   // Hero Section
                   ClipRRect(
                     borderRadius: BorderRadius.circular(24),
@@ -197,17 +156,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 children: [
                                 
                                   const SizedBox(height: 8),
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        'QUALITY PRINTS SINCE ',
-                                        style: theme.textTheme.headlineLarge
-                                            ?.copyWith(
-                                              color: heroTextColor,
-                                            ),
-                                      ),
-                                      Stack(
+                                  LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      final year = Stack(
                                         alignment: Alignment.center,
                                         children: [
                                           Text(
@@ -229,8 +180,39 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 ),
                                           ),
                                         ],
-                                      ),
-                                    ],
+                                      );
+
+                                      if (constraints.maxWidth < 440) {
+                                        return Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'QUALITY PRINTS SINCE',
+                                              style: theme.textTheme.headlineLarge
+                                                  ?.copyWith(
+                                                    color: heroTextColor,
+                                                  ),
+                                            ),
+                                            year,
+                                          ],
+                                        );
+                                      }
+
+                                      return Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            'QUALITY PRINTS SINCE ',
+                                            style: theme.textTheme.headlineLarge
+                                                ?.copyWith(
+                                                  color: heroTextColor,
+                                                ),
+                                          ),
+                                          year,
+                                        ],
+                                      );
+                                    },
                                   ),
                                   const SizedBox(height: 10),
                                   Text(
@@ -253,18 +235,85 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 32),
 
                   // Category Sections
-                  ...categories.map((category) {
-                    final products = _productsByCategory(category);
+            ...categories.map((category) {
+              final products = _productsByCategory(category);
 
-                    return _CategorySection(
-                      key: _categoryKeys[category],
-                      category: category,
-                      products: products,
-                    );
-                  }),
-                ],
+              return _CategorySection(
+                key: _categoryKeys[category],
+                category: category,
+                products: products,
+              );
+            }),
+          ],
+        ),
+      ),
+
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedNavIndex,
+        onDestinationSelected: (index) {
+          if (index == 2) {
+            setState(() {
+              _selectedNavIndex = index;
+            });
+            return;
+          }
+
+          final categoryIndex = index > 2 ? index - 1 : index;
+          _scrollToCategory(categories[categoryIndex]);
+        },
+        destinations: [
+          NavigationDestination(
+            icon: Icon(_categoryIcons[0]),
+            selectedIcon: Icon(_categoryIcons[0]),
+            label: categories[0],
+          ),
+          NavigationDestination(
+            icon: Icon(_categoryIcons[1]),
+            selectedIcon: Icon(_categoryIcons[1]),
+            label: categories[1],
+          ),
+          NavigationDestination(
+            icon: Transform.translate(
+              offset: const Offset(0, 8),
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.shopping_cart_outlined,
+                  size: 28,
+                  color: theme.colorScheme.onPrimary,
+                ),
               ),
             ),
+            selectedIcon: Transform.translate(
+              offset: const Offset(0, 8),
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.shopping_cart,
+                  size: 28,
+                  color: theme.colorScheme.onPrimary,
+                ),
+              ),
+            ),
+            label: '',
+          ),
+          NavigationDestination(
+            icon: Icon(_categoryIcons[2]),
+            selectedIcon: Icon(_categoryIcons[2]),
+            label: categories[2],
+          ),
+          NavigationDestination(
+            icon: Icon(_categoryIcons[3]),
+            selectedIcon: Icon(_categoryIcons[3]),
+            label: categories[3],
           ),
         ],
       ),
@@ -296,7 +345,7 @@ class _CategorySection extends StatelessWidget {
           columnCount = 2;
         }
 
-        final cardAspectRatio = constraints.maxWidth < 600 ? 0.45 : 0.58;
+        final cardAspectRatio = constraints.maxWidth < 600 ? 0.86 : 0.96;
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 40),
@@ -324,7 +373,7 @@ class _CategorySection extends StatelessWidget {
                 itemBuilder: (context, index) {
                   return ProductCard(
                     product: products[index],
-                    onSeeMore: () {
+                    onTap: () {
                       context.push(
                         '/product/${products[index].name}',
                         extra: products[index],

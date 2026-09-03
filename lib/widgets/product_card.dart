@@ -3,12 +3,12 @@ import '../models/product.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
-  final VoidCallback onSeeMore;
+  final VoidCallback onTap;
 
   const ProductCard({
     super.key,
     required this.product,
-    required this.onSeeMore,
+    required this.onTap,
   });
 
   IconData _getProductIcon() {
@@ -32,36 +32,63 @@ class ProductCard extends StatelessWidget {
 
     return Card(
       clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      child: InkWell(
+        onTap: onTap,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           Expanded(
             flex: 5,
             child: Container(
               width: double.infinity,
               alignment: Alignment.center,
               color: theme.colorScheme.surfaceContainerHighest,
-              child: Icon(
-                _getProductIcon(),
-                size: 64,
-                color: theme.colorScheme.primary,
-              ),
+              child: product.imagePath.isNotEmpty
+                  ? Image.asset(
+                      product.imagePath,
+                      width: double.infinity,
+                      height: double.infinity,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) => Icon(
+                        _getProductIcon(),
+                        size: 64,
+                        color: theme.colorScheme.primary,
+                      ),
+                    )
+                  : Icon(
+                      _getProductIcon(),
+                      size: 64,
+                      color: theme.colorScheme.primary,
+                    ),
             ),
           ),
 
-          Expanded(
-            flex: 4,
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleLarge,
-                  ),
+            Expanded(
+              flex: 4,
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            product.name,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleLarge,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.arrow_forward_rounded,
+                          size: 18,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ],
+                    ),
 
                   const SizedBox(height: 4),
 
@@ -73,20 +100,12 @@ class ProductCard extends StatelessWidget {
                     ),
                   ),
 
-                  const Spacer(),
-
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: onSeeMore,
-                      child: const Text('See More'),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
