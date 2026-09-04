@@ -3,6 +3,8 @@ import '../products/all_products.dart';
 import '../widgets/product_card.dart';
 import '../models/product.dart';
 import 'package:go_router/go_router.dart';
+import '../models/cart_item.dart';
+import 'product_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final ThemeMode themeMode;
@@ -20,7 +22,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final ScrollController _scrollController = ScrollController();
-
+  final List<CartItem> cartItems = [];
   final List<String> categories = [
     'Printers',
     'Flyers',
@@ -59,6 +61,25 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
   }
+
+  void addToCart(Product product, int quantity) {
+  final existingItemIndex = cartItems.indexWhere(
+    (item) => item.product.name == product.name,
+  );
+
+  setState(() {
+    if (existingItemIndex >= 0) {
+      cartItems[existingItemIndex].quantity += quantity;
+    } else {
+      cartItems.add(
+        CartItem(
+          product: product,
+          quantity: quantity,
+        ),
+      );
+    }
+  });
+}
 
   @override
   void dispose() {
@@ -242,6 +263,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 key: _categoryKeys[category],
                 category: category,
                 products: products,
+                onAddToCart: addToCart,
               );
             }),
           ],
@@ -324,11 +346,13 @@ class _HomeScreenState extends State<HomeScreen> {
 class _CategorySection extends StatelessWidget {
   final String category;
   final List<Product> products;
+  final Function(Product, int) onAddToCart;
 
   const _CategorySection({
     super.key,
     required this.category,
     required this.products,
+    required this.onAddToCart,
   });
 
   @override
@@ -374,11 +398,16 @@ class _CategorySection extends StatelessWidget {
                   return ProductCard(
                     product: products[index],
                     onTap: () {
-                      context.push(
-                        '/product/${products[index].name}',
-                        extra: products[index],
-                      );
-                    },
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ProductDetailScreen(
+                          product: products[index],
+                          onAddToCart: onAddToCart,
+                        ),
+                      ),
+                    );
+                  },
                   );
                 },
               ),
@@ -389,3 +418,4 @@ class _CategorySection extends StatelessWidget {
     );
   }
 }
+

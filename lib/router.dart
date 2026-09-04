@@ -27,6 +27,10 @@ GoRouter createRouter(
 
               return ProductDetailScreen(
                 product: product,
+                onAddToCart:
+                    (product, quantity) {
+                  // Handle adding the product to the cart
+                },
               );
             },
           ),
