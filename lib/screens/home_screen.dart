@@ -21,7 +21,12 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
+
   final List<CartItem> cartItems = [];
+
+  String _searchQuery = '';
+
   final List<String> categories = [
     'Printers',
     'Flyers',
@@ -35,12 +40,14 @@ class _HomeScreenState extends State<HomeScreen> {
     'Brochures': GlobalKey(),
     'Tarpaulins': GlobalKey(),
   };
+
   final List<IconData> _categoryIcons = [
     Icons.print_outlined,
     Icons.description_outlined,
     Icons.menu_book_outlined,
     Icons.image_outlined,
   ];
+
   int _selectedNavIndex = 0;
 
   void _scrollToCategory(String category) {
@@ -50,11 +57,11 @@ class _HomeScreenState extends State<HomeScreen> {
           : categories.indexOf(category);
     });
 
-    final context = _categoryKeys[category]?.currentContext;
+    final categoryContext = _categoryKeys[category]?.currentContext;
 
-    if (context != null) {
+    if (categoryContext != null) {
       Scrollable.ensureVisible(
-        context,
+        categoryContext,
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeInOut,
       );
@@ -62,34 +69,28 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void addToCart(Product product, int quantity) {
-  final existingItemIndex = cartItems.indexWhere(
-    (item) => item.product.name == product.name,
-  );
+    final existingItemIndex = cartItems.indexWhere(
+      (item) => item.product.name == product.name,
+    );
 
-  setState(() {
-    if (existingItemIndex >= 0) {
-      cartItems[existingItemIndex].quantity += quantity;
-    } else {
-      cartItems.add(
-        CartItem(
-          product: product,
-          quantity: quantity,
-        ),
-      );
-    }
-  });
-}
+    setState(() {
+      if (existingItemIndex >= 0) {
+        cartItems[existingItemIndex].quantity += quantity;
+      } else {
+        cartItems.add(
+          CartItem(
+            product: product,
+            quantity: quantity,
+          ),
+        );
+      }
+    });
+  }
 
-void clearCart() {
-  setState(() {
-    cartItems.clear();
-  });
-}
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
+  void clearCart() {
+    setState(() {
+      cartItems.clear();
+    });
   }
 
   List<Product> _productsByCategory(String category) {
@@ -98,10 +99,36 @@ void clearCart() {
         .toList();
   }
 
+  List<Product> _filteredProductsByCategory(String category) {
+    final products = _productsByCategory(category);
+
+    if (_searchQuery.isEmpty) {
+      return products;
+    }
+
+    final query = _searchQuery.toLowerCase();
+
+    return products.where((product) {
+      return product.name.toLowerCase().contains(query) ||
+          product.category.toLowerCase().contains(query);
+    }).toList();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final heroTextColor = Colors.white;
+
+    final hasSearchResults = categories.any(
+      (category) => _filteredProductsByCategory(category).isNotEmpty,
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -124,11 +151,32 @@ void clearCart() {
                   color: theme.colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const TextField(
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value.trim();
+                    });
+                  },
                   decoration: InputDecoration(
                     hintText: 'Search products...',
-                    prefixIcon: Icon(Icons.search),
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _searchController.clear();
+
+                              setState(() {
+                                _searchQuery = '';
+                              });
+                            },
+                          )
+                        : null,
                     border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                    ),
                   ),
                 ),
               ),
@@ -154,115 +202,184 @@ void clearCart() {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-                  // Hero Section
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(24),
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: 280,
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          Image.asset(
-                            'assets/hero_building.jpg',
-                            fit: BoxFit.cover,
-                          ),
-                          Container(
-                            color: theme.colorScheme.scrim.withValues(
-                              alpha: 0.52,
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(24),
-                            child: Align(
-                              alignment: Alignment.bottomLeft,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                
-                                  const SizedBox(height: 8),
-                                  LayoutBuilder(
-                                    builder: (context, constraints) {
-                                      final year = Stack(
-                                        alignment: Alignment.center,
-                                        children: [
-                                          Text(
-                                            '1965',
-                                            style: theme.textTheme.headlineLarge
-                                                ?.copyWith(
-                                                  foreground: Paint()
-                                                    ..style = PaintingStyle.stroke
-                                                    ..strokeWidth = 1.5
-                                                    ..color = theme
-                                                        .colorScheme.onPrimary,
-                                                ),
-                                          ),
-                                          Text(
-                                            '1965',
-                                            style: theme.textTheme.headlineLarge
-                                                ?.copyWith(
-                                                  color: theme.colorScheme.primary,
-                                                ),
-                                          ),
-                                        ],
-                                      );
-
-                                      if (constraints.maxWidth < 440) {
-                                        return Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              'QUALITY PRINTS SINCE',
-                                              style: theme.textTheme.headlineLarge
-                                                  ?.copyWith(
-                                                    color: heroTextColor,
-                                                  ),
-                                            ),
-                                            year,
-                                          ],
-                                        );
-                                      }
-
-                                      return Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            'QUALITY PRINTS SINCE ',
-                                            style: theme.textTheme.headlineLarge
-                                                ?.copyWith(
-                                                  color: heroTextColor,
-                                                ),
-                                          ),
-                                          year,
-                                        ],
-                                      );
-                                    },
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Text(
-                                    'Browse our selection of printing products and services.',
-                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                      color: heroTextColor.withValues(
-                                        alpha: 0.7,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
+            // Only show Hero when not searching
+            if (_searchQuery.isEmpty) ...[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 280,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Image.asset(
+                        'assets/hero_building.jpg',
+                        fit: BoxFit.cover,
                       ),
-                    ),
+
+                      Container(
+                        color: theme.colorScheme.scrim.withValues(
+                          alpha: 0.52,
+                        ),
+                      ),
+
+                      Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Align(
+                          alignment: Alignment.bottomLeft,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 8),
+
+                              LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final year = Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      Text(
+                                        '1965',
+                                        style: theme
+                                            .textTheme.headlineLarge
+                                            ?.copyWith(
+                                              foreground: Paint()
+                                                ..style =
+                                                    PaintingStyle.stroke
+                                                ..strokeWidth = 1.5
+                                                ..color = theme
+                                                    .colorScheme.onPrimary,
+                                            ),
+                                      ),
+
+                                      Text(
+                                        '1965',
+                                        style: theme
+                                            .textTheme.headlineLarge
+                                            ?.copyWith(
+                                              color: theme
+                                                  .colorScheme.primary,
+                                            ),
+                                      ),
+                                    ],
+                                  );
+
+                                  if (constraints.maxWidth < 440) {
+                                    return Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'QUALITY PRINTS SINCE',
+                                          style: theme
+                                              .textTheme.headlineLarge
+                                              ?.copyWith(
+                                                color: heroTextColor,
+                                              ),
+                                        ),
+                                        year,
+                                      ],
+                                    );
+                                  }
+
+                                  return Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'QUALITY PRINTS SINCE ',
+                                        style: theme
+                                            .textTheme.headlineLarge
+                                            ?.copyWith(
+                                              color: heroTextColor,
+                                            ),
+                                      ),
+                                      year,
+                                    ],
+                                  );
+                                },
+                              ),
+
+                              const SizedBox(height: 10),
+
+                              Text(
+                                'Browse our selection of printing products and services.',
+                                style:
+                                    theme.textTheme.bodyMedium?.copyWith(
+                                  color: heroTextColor.withValues(
+                                    alpha: 0.7,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
+                ),
+              ),
 
-                  const SizedBox(height: 32),
+              const SizedBox(height: 32),
+            ],
 
-                  // Category Sections
+            // Search results header
+            if (_searchQuery.isNotEmpty) ...[
+              Text(
+                'Search Results',
+                style: theme.textTheme.headlineMedium,
+              ),
+
+              const SizedBox(height: 8),
+
+              Text(
+                'Results for "${_searchQuery}"',
+                style: theme.textTheme.bodyMedium,
+              ),
+
+              const SizedBox(height: 24),
+            ],
+
+            // No results message
+            if (_searchQuery.isNotEmpty && !hasSearchResults)
+              Padding(
+                padding: const EdgeInsets.only(top: 60),
+                child: Center(
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.search_off_outlined,
+                        size: 70,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      Text(
+                        'No products found',
+                        style: theme.textTheme.titleLarge,
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      Text(
+                        'Try searching for something else.',
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+            // Category Sections
             ...categories.map((category) {
-              final products = _productsByCategory(category);
+              final products =
+                  _filteredProductsByCategory(category);
+
+              // Hide empty categories while searching
+              if (_searchQuery.isNotEmpty && products.isEmpty) {
+                return const SizedBox.shrink();
+              }
 
               return _CategorySection(
                 key: _categoryKeys[category],
@@ -379,7 +496,8 @@ class _CategorySection extends StatelessWidget {
           columnCount = 2;
         }
 
-        final cardAspectRatio = constraints.maxWidth < 600 ? 0.68 : 0.78;
+        final cardAspectRatio =
+            constraints.maxWidth < 600 ? 0.68 : 0.78;
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 40),
@@ -408,14 +526,14 @@ class _CategorySection extends StatelessWidget {
                   return ProductCard(
                     product: products[index],
                     onTap: () {
-                    context.push(
-                      '/product/${products[index].name}',
-                      extra: {
-                        'product': products[index],
-                        'onAddToCart': onAddToCart,
-                      },
-                    );
-                  },
+                      context.push(
+                        '/product/${products[index].name}',
+                        extra: {
+                          'product': products[index],
+                          'onAddToCart': onAddToCart,
+                        },
+                      );
+                    },
                   );
                 },
               ),
@@ -426,4 +544,3 @@ class _CategorySection extends StatelessWidget {
     );
   }
 }
-
