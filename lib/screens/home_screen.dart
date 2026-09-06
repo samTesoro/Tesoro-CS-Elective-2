@@ -80,6 +80,12 @@ class _HomeScreenState extends State<HomeScreen> {
   });
 }
 
+void clearCart() {
+  setState(() {
+    cartItems.clear();
+  });
+}
+
   @override
   void dispose() {
     _scrollController.dispose();
@@ -275,10 +281,11 @@ class _HomeScreenState extends State<HomeScreen> {
           if (index == 2) {
             context.push(
               '/cart',
-              extra: cartItems,
-            ).then((_) {
-              setState(() {});
-            });
+              extra: {
+                'cartItems': cartItems,
+                'onClearCart': clearCart,
+              },
+            );
 
             return;
           }

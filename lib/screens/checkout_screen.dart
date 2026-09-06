@@ -4,10 +4,12 @@ import '../models/cart_item.dart';
 
 class CheckoutScreen extends StatelessWidget {
   final List<CartItem> cartItems;
+  final VoidCallback onCheckoutComplete;
 
   const CheckoutScreen({
     super.key,
     required this.cartItems,
+    required this.onCheckoutComplete,
   });
 
   double get totalPrice {
@@ -121,6 +123,10 @@ class CheckoutScreen extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
+                  // Clear the cart
+                  onCheckoutComplete();
+
+                  // Return to home screen
                   context.go('/');
                 },
                 child: const Text('Continue Shopping'),

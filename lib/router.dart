@@ -43,10 +43,11 @@ GoRouter createRouter(
       GoRoute(
         path: '/cart',
         builder: (context, state) {
-          final cartItems = state.extra as List<CartItem>;
+          final extra = state.extra as Map<String, dynamic>;
 
           return CartScreen(
-            cartItems: cartItems,
+            cartItems: extra['cartItems'] as List<CartItem>,
+            onClearCart: extra['onClearCart'] as VoidCallback,
           );
         },
       ),
@@ -54,10 +55,12 @@ GoRouter createRouter(
       GoRoute(
         path: '/checkout',
         builder: (context, state) {
-          final cartItems = state.extra as List<CartItem>;
+          final extra = state.extra as Map<String, dynamic>;
 
           return CheckoutScreen(
-            cartItems: cartItems,
+            cartItems: extra['cartItems'] as List<CartItem>,
+            onCheckoutComplete:
+                extra['onCheckoutComplete'] as VoidCallback,
           );
         },
       ),

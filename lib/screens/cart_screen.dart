@@ -4,10 +4,12 @@ import '../models/cart_item.dart';
 
 class CartScreen extends StatefulWidget {
   final List<CartItem> cartItems;
+  final VoidCallback onClearCart;
 
   const CartScreen({
     super.key,
     required this.cartItems,
+    required this.onClearCart,
   });
 
   @override
@@ -212,7 +214,10 @@ class _CartScreenState extends State<CartScreen> {
                             onPressed: () {
                               context.push(
                                 '/checkout',
-                                extra: widget.cartItems,
+                                extra: {
+                                  'cartItems': widget.cartItems,
+                                  'onCheckoutComplete': widget.onClearCart,
+                                },
                               );
                             },
                             child: const Text('Proceed to Checkout'),
