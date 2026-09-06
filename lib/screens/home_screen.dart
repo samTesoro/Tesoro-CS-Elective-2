@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import '../products/all_products.dart';
 import '../widgets/product_card.dart';
 import '../models/product.dart';
-import 'package:go_router/go_router.dart';
 import '../models/cart_item.dart';
-import 'product_detail_screen.dart';
+import 'package:go_router/go_router.dart';
 
 class HomeScreen extends StatefulWidget {
   final ThemeMode themeMode;
@@ -274,9 +273,13 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedIndex: _selectedNavIndex,
         onDestinationSelected: (index) {
           if (index == 2) {
-            setState(() {
-              _selectedNavIndex = index;
+            context.push(
+              '/cart',
+              extra: cartItems,
+            ).then((_) {
+              setState(() {});
             });
+
             return;
           }
 
@@ -398,14 +401,12 @@ class _CategorySection extends StatelessWidget {
                   return ProductCard(
                     product: products[index],
                     onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ProductDetailScreen(
-                          product: products[index],
-                          onAddToCart: onAddToCart,
-                        ),
-                      ),
+                    context.push(
+                      '/product/${products[index].name}',
+                      extra: {
+                        'product': products[index],
+                        'onAddToCart': onAddToCart,
+                      },
                     );
                   },
                   );
