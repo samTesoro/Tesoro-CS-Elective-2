@@ -134,6 +134,12 @@ class _CartScreenState extends State<CartScreen> {
                                         IconButton.outlined(
                                           onPressed: () =>
                                               decreaseQuantity(item),
+                                          style: IconButton.styleFrom(
+                                            minimumSize: const Size(
+                                              48,
+                                              48,
+                                            ),
+                                          ),
                                           icon:
                                               const Icon(Icons.remove),
                                         ),
@@ -149,6 +155,12 @@ class _CartScreenState extends State<CartScreen> {
                                         IconButton.outlined(
                                           onPressed: () =>
                                               increaseQuantity(item),
+                                          style: IconButton.styleFrom(
+                                            minimumSize: const Size(
+                                              48,
+                                              48,
+                                            ),
+                                          ),
                                           icon: const Icon(Icons.add),
                                         ),
                                       ],
@@ -159,6 +171,9 @@ class _CartScreenState extends State<CartScreen> {
 
                               IconButton(
                                 onPressed: () => removeItem(item),
+                                style: IconButton.styleFrom(
+                                  minimumSize: const Size(48, 48),
+                                ),
                                 icon: const Icon(
                                   Icons.delete_outline,
                                 ),

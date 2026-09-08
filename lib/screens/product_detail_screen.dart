@@ -212,6 +212,9 @@ class _ProductInformation extends StatelessWidget {
           children: [
             IconButton.outlined(
               onPressed: onDecrease,
+              style: IconButton.styleFrom(
+                minimumSize: const Size(48, 48),
+              ),
               icon: const Icon(Icons.remove),
             ),
 
@@ -226,6 +229,9 @@ class _ProductInformation extends StatelessWidget {
 
             IconButton.outlined(
               onPressed: onIncrease,
+              style: IconButton.styleFrom(
+                minimumSize: const Size(48, 48),
+              ),
               icon: const Icon(Icons.add),
             ),
           ],
