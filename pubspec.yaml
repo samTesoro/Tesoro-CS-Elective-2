@@ -61,7 +61,19 @@ flutter:
   assets:
     - assets/logo.png
     - assets/hero_building.jpg
-    - assets/L3210.jpg
+    - assets/L3210.png
+    - assets/G2010.png
+    - assets/520.png
+    - assets/DCP-T520W.png
+    - assets/a4.png
+    - assets/double-sided.png
+    - assets/bi-fold.png
+    - assets/tri-fold.png
+    - assets/premium.png
+    - assets/a5.png
+    - assets/2x3-2.png
+    - assets/3x4-2.png
+    - assets/4x6-2.png
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg
