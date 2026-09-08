@@ -26,6 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<CartItem> cartItems = [];
 
   String _searchQuery = '';
+  bool _isCartHovered = false;
 
   final List<String> categories = [
     'Printers',
@@ -91,6 +92,58 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       cartItems.clear();
     });
+  }
+
+  int get cartItemCount => cartItems.fold(
+        0,
+        (total, item) => total + item.quantity,
+      );
+
+  Widget _cartNavigationIcon({required bool selected}) {
+    final theme = Theme.of(context);
+
+    return Transform.translate(
+      offset: const Offset(0, 8),
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _isCartHovered = true),
+        onExit: (_) => setState(() => _isCartHovered = false),
+        child: SizedBox(
+          width: 48,
+          height: 48,
+          child: Badge.count(
+            count: cartItemCount,
+            isLabelVisible: cartItemCount > 0,
+            alignment: Alignment.topRight,
+            offset: const Offset(4, -4),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 120),
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: _isCartHovered
+                    ? [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.22),
+                          blurRadius: 8,
+                          offset: const Offset(0, 6),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Icon(
+                selected
+                    ? Icons.shopping_cart
+                    : Icons.shopping_cart_outlined,
+                size: 28,
+                color: theme.colorScheme.onPrimary,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   List<Product> _productsByCategory(String category) {
@@ -394,6 +447,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedNavIndex,
+        overlayColor: WidgetStatePropertyAll(Colors.transparent),
         onDestinationSelected: (index) {
           if (index == 2) {
             context.push(
@@ -422,36 +476,8 @@ class _HomeScreenState extends State<HomeScreen> {
             label: categories[1],
           ),
           NavigationDestination(
-            icon: Transform.translate(
-              offset: const Offset(0, 8),
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.shopping_cart_outlined,
-                  size: 28,
-                  color: theme.colorScheme.onPrimary,
-                ),
-              ),
-            ),
-            selectedIcon: Transform.translate(
-              offset: const Offset(0, 8),
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.shopping_cart,
-                  size: 28,
-                  color: theme.colorScheme.onPrimary,
-                ),
-              ),
-            ),
+            icon: _cartNavigationIcon(selected: false),
+            selectedIcon: _cartNavigationIcon(selected: true),
             label: '',
           ),
           NavigationDestination(
