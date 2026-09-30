@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
-import 'router.dart';
+import 'screens/pokedex_screen.dart';
+import 'services/pokemon_service.dart';
 import 'theme.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp(service: PokemonService()));
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  final PokemonService service;
+
+  const MyApp({super.key, required this.service});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -26,18 +29,17 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    final router = createRouter(
-      _themeMode,
-      _toggleTheme,
-    );
-
-    return MaterialApp.router(
-      title: "Tesoro's Printing Press",
+    return MaterialApp(
+      title: 'Pokédex',
       debugShowCheckedModeBanner: false,
       theme: lightTheme,
       darkTheme: darkTheme,
       themeMode: _themeMode,
-      routerConfig: router,
+      home: PokedexScreen(
+        service: widget.service,
+        themeMode: _themeMode,
+        onToggleTheme: _toggleTheme,
+      ),
     );
   }
 }
