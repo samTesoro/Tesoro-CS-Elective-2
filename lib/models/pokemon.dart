@@ -3,13 +3,9 @@ class Pokemon {
   final String name;
   final String imageUrl;
 
-  const Pokemon({
-    required this.id,
-    required this.name,
-    required this.imageUrl,
-  });
+  const Pokemon({required this.id, required this.name, required this.imageUrl});
 
-  // Builds a Pokemon from one entry of the PokéAPI list response:
+  // Builds a Pokemon from one entry of the PokeAPI list response:
   // { "name": "bulbasaur", "url": "https://pokeapi.co/api/v2/pokemon/1/" }
   // The list endpoint doesn't return the ID directly, so it is read from the
   // last segment of the URL.
@@ -18,14 +14,14 @@ class Pokemon {
     final url = json['url'];
 
     if (name is! String || url is! String) {
-      throw const FormatException('Pokémon entry is missing name or url');
+      throw const FormatException('Pokemon entry is missing name or url');
     }
 
     final segments = Uri.parse(url).pathSegments.where((s) => s.isNotEmpty);
     final id = int.tryParse(segments.isEmpty ? '' : segments.last);
 
     if (id == null) {
-      throw FormatException('Could not read Pokémon ID from url', url);
+      throw FormatException('Could not read Pokemon ID from url', url);
     }
 
     return Pokemon(

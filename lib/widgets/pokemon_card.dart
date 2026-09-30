@@ -1,26 +1,32 @@
 import 'package:flutter/material.dart';
 import '../models/pokemon.dart';
+import '../theme.dart';
 
 class PokemonCard extends StatelessWidget {
   final Pokemon pokemon;
 
-  const PokemonCard({
-    super.key,
-    required this.pokemon,
-  });
+  const PokemonCard({super.key, required this.pokemon});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
+    return Container(
+      decoration: pixelBox(color: theme.cardTheme.color ?? Colors.white),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
             child: Container(
-              color: theme.colorScheme.surfaceContainerHighest,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest,
+                border: const Border(
+                  bottom: BorderSide(
+                    color: pixelBorderColor,
+                    width: pixelBorderWidth,
+                  ),
+                ),
+              ),
               padding: const EdgeInsets.all(12),
               // Each image is its own network Future; Image.network exposes
               // loading and error states through these builders.
@@ -33,7 +39,10 @@ class PokemonCard extends StatelessWidget {
                     child: SizedBox(
                       width: 24,
                       height: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 3,
+                        strokeCap: StrokeCap.square,
+                      ),
                     ),
                   );
                 },

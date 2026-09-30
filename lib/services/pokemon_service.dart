@@ -24,7 +24,7 @@ class PokemonService {
   PokemonService({http.Client? client}) : _client = client ?? http.Client();
 
   // Future, not Stream: this is a single HTTP GET that produces exactly one
-  // result (the list of Pokémon) and then has a clear "finished" moment.
+  // result (the list of Pokemon) and then has a clear "finished" moment.
   // Nothing new arrives over time, so there is nothing for a Stream to emit
   // after the first value.
   Future<List<Pokemon>> fetchPokemon({int limit = 30}) async {
@@ -58,7 +58,7 @@ class PokemonService {
       );
     } on FormatException {
       throw const PokemonServiceException(
-        'Received invalid data from the PokéAPI.',
+        'Received invalid data from the PokeAPI.',
       );
     }
   }

@@ -1,6 +1,6 @@
 # Pokédex List — Dart Async Activity
 
-Fetches the first 30 Pokémon from the [PokéAPI](https://pokeapi.co/api/v2/pokemon)
+Fetches all 151 Kanto Pokédex Pokémon (#001 Bulbasaur – #151 Mew) from the [PokéAPI](https://pokeapi.co/api/v2/pokemon)
 and shows each one's name, image, and ID in a scrollable grid.
 
 ## Folder structure
@@ -22,7 +22,7 @@ lib/
 The deciding question is: does this operation produce exactly one result, or a
 sequence of results over time?
 
-`GET /pokemon?limit=30` is a single HTTP request. It returns one response and
+`GET /pokemon?limit=151` is a single HTTP request. It returns one response and
 then it's done. Nothing new arrives later, so a Stream would have nothing to
 emit after its first value. A `Future<List<Pokemon>>` consumed by a
 `FutureBuilder` fits this. A Stream fits continuous data, such as a chat feed,
@@ -30,7 +30,7 @@ Firestore snapshots, or sensor readings.
 
 Because the list endpoint only returns `name` and `url`, the ID is read from the
 URL and the image is built from the official-artwork sprite URL. That keeps the
-data fetch to one request instead of 31.
+data fetch to one request instead of 152.
 
 ## Async concepts applied
 
