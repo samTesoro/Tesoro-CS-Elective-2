@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/pokemon.dart';
 import '../theme.dart';
+import 'type_badge.dart';
 
 class PokemonCard extends StatelessWidget {
   final Pokemon pokemon;
@@ -28,8 +29,6 @@ class PokemonCard extends StatelessWidget {
                 ),
               ),
               padding: const EdgeInsets.all(12),
-              // Each image is its own network Future; Image.network exposes
-              // loading and error states through these builders.
               child: Image.network(
                 pokemon.imageUrl,
                 fit: BoxFit.contain,
@@ -59,12 +58,22 @@ class PokemonCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  pokemon.displayId,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        pokemon.displayId,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    for (final type in pokemon.types) ...[
+                      const SizedBox(width: 4),
+                      TypeIcon(type: type),
+                    ],
+                  ],
                 ),
                 const SizedBox(height: 2),
                 Text(

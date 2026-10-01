@@ -36,6 +36,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   http: ^1.6.0
   audioplayers: ^6.8.1
+  flutter_svg: ^2.3.0
 
 dev_dependencies:
   flutter_test:
@@ -77,6 +78,7 @@ flutter:
     - assets/4x6-2.png
     - assets/pokedex_background.jpg
     - assets/pokedex_logo.png
+    - assets/types/
     - music/
 
   fonts:

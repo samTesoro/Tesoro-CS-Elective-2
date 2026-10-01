@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../theme.dart';
 
-// Centered icon + message (+ optional retry button), used for the
-// error and empty states of the Pokedex grid.
 class StatusView extends StatelessWidget {
   final IconData icon;
   final String title;

@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 
-// Main Brand Colors
 const mainRed = Color(0xFFC8102E);
 const darkRed = Color(0xFF8E0B20);
 const accentRed = Color(0xFFE31B23);
 
-// Pixel-art frame style: square corners, thick dark outline, hard drop shadow.
 const pixelBorderColor = Color(0xFF1B1B1B);
 const pixelBorderWidth = 3.0;
-// Text field (search bar) outline, matched to the line under the navbar.
 const inputBorderWidth = pixelBorderWidth;
 
 BoxDecoration pixelBox({required Color color}) => BoxDecoration(
@@ -18,6 +15,17 @@ BoxDecoration pixelBox({required Color color}) => BoxDecoration(
     BoxShadow(color: pixelBorderColor, offset: Offset(4, 4), blurRadius: 0),
   ],
 );
+
+const darkControlColor = Color(0xFF2B2B2B);
+
+bool _isDark(BuildContext context) =>
+    Theme.of(context).brightness == Brightness.dark;
+
+Color controlFillColor(BuildContext context) =>
+    _isDark(context) ? darkControlColor : Colors.white;
+
+Color controlTextColor(BuildContext context) =>
+    _isDark(context) ? Colors.white : pixelBorderColor;
 
 const _pixelShape = RoundedRectangleBorder(
   borderRadius: BorderRadius.zero,
@@ -45,11 +53,9 @@ ThemeData createTheme(Brightness brightness) {
       foregroundColor: Colors.white,
       centerTitle: true,
       elevation: 0,
-      // Material 3 adds a shadow/tint when content scrolls under the bar.
       scrolledUnderElevation: 0,
       surfaceTintColor: Colors.transparent,
       shadowColor: Colors.transparent,
-      // Black outline along the bottom edge of the navbar.
       shape: const Border(
         bottom: BorderSide(color: pixelBorderColor, width: pixelBorderWidth),
       ),
@@ -61,7 +67,7 @@ ThemeData createTheme(Brightness brightness) {
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: primaryColor,
+        backgroundColor: isDark ? darkRed : mainRed,
         foregroundColor: Colors.white,
         elevation: 0,
         minimumSize: const Size(0, 52),
@@ -71,7 +77,8 @@ ThemeData createTheme(Brightness brightness) {
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: primaryColor,
+        foregroundColor: isDark ? Colors.white : primaryColor,
+        backgroundColor: isDark ? darkControlColor : null,
         side: const BorderSide(
           color: pixelBorderColor,
           width: pixelBorderWidth,
@@ -79,25 +86,29 @@ ThemeData createTheme(Brightness brightness) {
         shape: _pixelShape,
       ),
     ),
-    inputDecorationTheme: const InputDecorationTheme(
+    inputDecorationTheme: InputDecorationTheme(
       filled: true,
+      fillColor: isDark ? darkControlColor : Colors.white,
+      hintStyle: TextStyle(
+        color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
+      ),
       isDense: true,
-      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      border: OutlineInputBorder(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      border: const OutlineInputBorder(
         borderRadius: BorderRadius.zero,
         borderSide: BorderSide(
           color: pixelBorderColor,
           width: inputBorderWidth,
         ),
       ),
-      enabledBorder: OutlineInputBorder(
+      enabledBorder: const OutlineInputBorder(
         borderRadius: BorderRadius.zero,
         borderSide: BorderSide(
           color: pixelBorderColor,
           width: inputBorderWidth,
         ),
       ),
-      focusedBorder: OutlineInputBorder(
+      focusedBorder: const OutlineInputBorder(
         borderRadius: BorderRadius.zero,
         borderSide: BorderSide(
           color: pixelBorderColor,

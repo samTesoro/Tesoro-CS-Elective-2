@@ -1,14 +1,22 @@
+import 'pokemon_type.dart';
+
 class Pokemon {
   final int id;
   final String name;
   final String imageUrl;
 
-  const Pokemon({required this.id, required this.name, required this.imageUrl});
+  final List<PokemonType> types;
 
-  // Builds a Pokemon from one entry of the PokeAPI list response:
-  // { "name": "bulbasaur", "url": "https://pokeapi.co/api/v2/pokemon/1/" }
-  // The list endpoint doesn't return the ID directly, so it is read from the
-  // last segment of the URL.
+  const Pokemon({
+    required this.id,
+    required this.name,
+    required this.imageUrl,
+    this.types = const [],
+  });
+
+  Pokemon withTypes(List<PokemonType> types) =>
+      Pokemon(id: id, name: name, imageUrl: imageUrl, types: types);
+
   factory Pokemon.fromJson(Map<String, dynamic> json) {
     final name = json['name'];
     final url = json['url'];
@@ -32,12 +40,10 @@ class Pokemon {
     );
   }
 
-  // "mr-mime" -> "Mr Mime"
   String get displayName => name
       .split('-')
       .map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}')
       .join(' ');
 
-  // 1 -> "#001"
   String get displayId => '#${id.toString().padLeft(3, '0')}';
 }

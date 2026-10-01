@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../services/music_service.dart';
 
-// Speaker button for the navbar. Tapping it mutes/unmutes; hovering over it
-// (mouse or trackpad) slides out a volume slider to its left.
 class VolumeControl extends StatefulWidget {
   final MusicService music;
 
@@ -17,12 +15,12 @@ class _VolumeControlState extends State<VolumeControl> {
   static const _sliderWidth = 120.0;
 
   bool _hovering = false;
-  // Keeps the slider open while dragging, even if the pointer leaves it.
   bool _dragging = false;
 
   bool get _showSlider => _hovering || _dragging;
 
   Future<void> _toggleMute() async {
+    widget.music.playClick(ignoreMute: true);
     await widget.music.toggleMute();
     if (!mounted) return;
     setState(() {});

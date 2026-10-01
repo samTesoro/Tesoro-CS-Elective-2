@@ -8,14 +8,15 @@ import 'package:http/testing.dart';
 
 import 'package:flutter_application_1/main.dart';
 import 'package:flutter_application_1/models/pokemon.dart';
+import 'package:flutter_application_1/models/pokemon_type.dart';
 import 'package:flutter_application_1/services/music_service.dart';
 import 'package:flutter_application_1/services/pokemon_service.dart';
 
-// Stands in for the real player so tests never touch the audio plugin.
 class FakeMusicService implements MusicService {
   bool _muted = false;
   double _volume = 1;
   int startCalls = 0;
+  int clicks = 0;
 
   @override
   bool get isMuted => _muted;
@@ -30,6 +31,8 @@ class FakeMusicService implements MusicService {
   @override
   Future<void> start() async => startCalls++;
   @override
+  Future<void> playClick({bool ignoreMute = false}) async => clicks++;
+  @override
   Future<void> toggleMute() async => _muted = !_muted;
   @override
   Future<void> pause() async {}
@@ -41,6 +44,32 @@ class FakeMusicService implements MusicService {
 
 PokemonService serviceReturning(http.Response response) =>
     PokemonService(client: MockClient((_) async => response));
+
+http.Response typeResponse(Uri url, int count) => http.Response(
+  jsonEncode({
+    'pokemon': [
+      if (url.pathSegments.contains('fire'))
+        for (var i = 1; i <= count; i += 2)
+          {
+            'slot': 1,
+            'pokemon': {
+              'name': 'pokemon-$i',
+              'url': 'https://pokeapi.co/api/v2/pokemon/$i/',
+            },
+          },
+    ],
+  }),
+  200,
+);
+
+PokemonService serviceWithList(int count) => PokemonService(
+  client: MockClient((req) async {
+    if (req.url.pathSegments.contains('type')) {
+      return typeResponse(req.url, count);
+    }
+    return http.Response(listBody(count), 200);
+  }),
+);
 
 String listBody(int count) => jsonEncode({
   'results': [
@@ -75,6 +104,9 @@ void main() {
       Uri? requested;
       final service = PokemonService(
         client: MockClient((req) async {
+          if (req.url.pathSegments.contains('type')) {
+            return typeResponse(req.url, 30);
+          }
           requested = req.url;
           return http.Response(listBody(30), 200);
         }),
@@ -82,6 +114,12 @@ void main() {
       final list = await service.fetchPokemon();
       expect(requested?.queryParameters['limit'], '30');
       expect(list, hasLength(30));
+    });
+
+    test('attaches types from the type endpoints', () async {
+      final list = await serviceWithList(2).fetchPokemon();
+      expect(list[0].types, [PokemonType.fire]);
+      expect(list[1].types, isEmpty);
     });
 
     test('maps bad status code to PokemonServiceException', () {
@@ -102,10 +140,7 @@ void main() {
   group('PokedexScreen states', () {
     testWidgets('shows loading, then the grid', (tester) async {
       await tester.pumpWidget(
-        MyApp(
-          music: FakeMusicService(),
-          service: serviceReturning(http.Response(listBody(3), 200)),
-        ),
+        MyApp(music: FakeMusicService(), service: serviceWithList(3)),
       );
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
@@ -131,14 +166,29 @@ void main() {
 
     testWidgets('shows the empty state', (tester) async {
       await tester.pumpWidget(
-        MyApp(
-          music: FakeMusicService(),
-          service: serviceReturning(http.Response(listBody(0), 200)),
-        ),
+        MyApp(music: FakeMusicService(), service: serviceWithList(0)),
       );
       await tester.pump();
 
       expect(find.text('No Pokemon found'), findsOneWidget);
+    });
+
+    testWidgets('type filter shows only Pokemon of that type', (tester) async {
+      await tester.pumpWidget(
+        MyApp(music: FakeMusicService(), service: serviceWithList(3)),
+      );
+      await tester.pump();
+      expect(find.text('Pokemon 2'), findsOneWidget);
+
+      await tester.tap(find.text('Fire'));
+      await tester.pump();
+      expect(find.text('Pokemon 1'), findsOneWidget);
+      expect(find.text('Pokemon 2'), findsNothing);
+      expect(find.text('Pokemon 3'), findsOneWidget);
+
+      await tester.tap(find.text('All'));
+      await tester.pump();
+      expect(find.text('Pokemon 2'), findsOneWidget);
     });
   });
   group('Background music', () {
@@ -146,12 +196,7 @@ void main() {
       tester,
     ) async {
       final music = FakeMusicService();
-      await tester.pumpWidget(
-        MyApp(
-          music: music,
-          service: serviceReturning(http.Response(listBody(1), 200)),
-        ),
-      );
+      await tester.pumpWidget(MyApp(music: music, service: serviceWithList(1)));
       await tester.pump();
 
       expect(music.startCalls, greaterThan(0));
@@ -164,16 +209,24 @@ void main() {
       expect(find.byIcon(Icons.volume_off), findsOneWidget);
     });
 
+    testWidgets('buttons play the click sound', (tester) async {
+      final music = FakeMusicService();
+      await tester.pumpWidget(MyApp(music: music, service: serviceWithList(1)));
+      await tester.pump();
+
+      await tester.tap(find.text('Fire'));
+      await tester.tap(find.byTooltip('Dark mode'));
+      await tester.tap(find.byTooltip('Mute music'));
+      await tester.pump();
+
+      expect(music.clicks, 3);
+    });
+
     testWidgets('hovering the sound icon shows a volume slider', (
       tester,
     ) async {
       final music = FakeMusicService();
-      await tester.pumpWidget(
-        MyApp(
-          music: music,
-          service: serviceReturning(http.Response(listBody(1), 200)),
-        ),
-      );
+      await tester.pumpWidget(MyApp(music: music, service: serviceWithList(1)));
       await tester.pump();
 
       Size sliderSize() => tester.getSize(
@@ -189,7 +242,6 @@ void main() {
       await tester.pumpAndSettle();
       expect(sliderSize().width, greaterThan(0));
 
-      // Drag the slider to the far left: volume 0 shows the muted icon.
       await tester.drag(find.byType(Slider), const Offset(-200, 0));
       await tester.pumpAndSettle();
       expect(music.volume, 0);
