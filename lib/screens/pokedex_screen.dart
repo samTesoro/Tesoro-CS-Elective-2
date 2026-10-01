@@ -5,6 +5,7 @@ import '../models/pokemon_type.dart';
 import '../services/music_service.dart';
 import '../services/pokemon_service.dart';
 import '../theme.dart';
+import '../widgets/pokeball_spinner.dart';
 import '../widgets/pokemon_card.dart';
 import '../widgets/status_view.dart';
 import '../widgets/type_badge.dart';
@@ -198,12 +199,7 @@ class _PokedexScreenState extends State<PokedexScreen> {
             future: _pokemonFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: CircularProgressIndicator(
-                    strokeWidth: 5,
-                    strokeCap: StrokeCap.square,
-                  ),
-                );
+                return const Center(child: PokeballSpinner(size: 80));
               }
 
               if (snapshot.hasError) {
