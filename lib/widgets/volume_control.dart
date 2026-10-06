@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../services/music_service.dart';
+import '../providers/music_provider.dart';
 
 class VolumeControl extends StatefulWidget {
-  final MusicService music;
-
-  const VolumeControl({super.key, required this.music});
+  const VolumeControl({super.key});
 
   @override
   State<VolumeControl> createState() => _VolumeControlState();
@@ -19,21 +18,13 @@ class _VolumeControlState extends State<VolumeControl> {
 
   bool get _showSlider => _hovering || _dragging;
 
-  Future<void> _toggleMute() async {
-    widget.music.playClick(ignoreMute: true);
-    await widget.music.toggleMute();
-    if (!mounted) return;
-    setState(() {});
+  void _toggleMute() {
+    final music = context.read<MusicProvider>();
+    music.playClick(ignoreMute: true);
+    music.toggleMute();
   }
 
-  Future<void> _setVolume(double value) async {
-    await widget.music.setVolume(value);
-    if (!mounted) return;
-    setState(() {});
-  }
-
-  IconData get _icon {
-    final music = widget.music;
+  IconData _icon(MusicProvider music) {
     if (music.isMuted || music.volume == 0) return Icons.volume_off;
     if (music.volume < 0.5) return Icons.volume_down;
     return Icons.volume_up;
@@ -41,7 +32,7 @@ class _VolumeControlState extends State<VolumeControl> {
 
   @override
   Widget build(BuildContext context) {
-    final music = widget.music;
+    final music = context.watch<MusicProvider>();
     final level = music.isMuted ? 0.0 : music.volume;
 
     return MouseRegion(
@@ -77,7 +68,7 @@ class _VolumeControlState extends State<VolumeControl> {
                         'Volume ${(v * 100).round()}%',
                     onChangeStart: (_) => setState(() => _dragging = true),
                     onChangeEnd: (_) => setState(() => _dragging = false),
-                    onChanged: _setVolume,
+                    onChanged: context.read<MusicProvider>().setVolume,
                   ),
                 ),
               ),
@@ -85,7 +76,7 @@ class _VolumeControlState extends State<VolumeControl> {
           ),
           IconButton(
             tooltip: music.isMuted ? 'Unmute music' : 'Mute music',
-            icon: Icon(_icon),
+            icon: Icon(_icon(music)),
             onPressed: _toggleMute,
           ),
         ],

@@ -5,11 +5,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:provider/provider.dart';
 
 import 'package:flutter_application_1/main.dart';
 import 'package:flutter_application_1/models/pokemon.dart';
 import 'package:flutter_application_1/models/pokemon_type.dart';
+import 'package:flutter_application_1/providers/music_provider.dart';
+import 'package:flutter_application_1/providers/pokemon_provider.dart';
+import 'package:flutter_application_1/providers/theme_provider.dart';
 import 'package:flutter_application_1/services/music_service.dart';
+import 'package:flutter_application_1/widgets/pokeball_spinner.dart';
 import 'package:flutter_application_1/services/pokemon_service.dart';
 
 class FakeMusicService implements MusicService {
@@ -78,6 +83,18 @@ String listBody(int count) => jsonEncode({
   ],
 });
 
+Widget app({required PokemonService service, required MusicService music}) =>
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => PokemonProvider(service)..fetchPokemon(),
+        ),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => MusicProvider(music)),
+      ],
+      child: const MyApp(),
+    );
+
 void main() {
   group('Pokemon.fromJson', () {
     test('reads the ID from the url', () {
@@ -140,10 +157,10 @@ void main() {
   group('PokedexScreen states', () {
     testWidgets('shows loading, then the grid', (tester) async {
       await tester.pumpWidget(
-        MyApp(music: FakeMusicService(), service: serviceWithList(3)),
+        app(music: FakeMusicService(), service: serviceWithList(3)),
       );
 
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(PokeballSpinner), findsOneWidget);
 
       await tester.pump();
       expect(find.byType(GridView), findsOneWidget);
@@ -153,7 +170,7 @@ void main() {
 
     testWidgets('shows the error state with retry', (tester) async {
       await tester.pumpWidget(
-        MyApp(
+        app(
           music: FakeMusicService(),
           service: serviceReturning(http.Response('', 500)),
         ),
@@ -166,7 +183,7 @@ void main() {
 
     testWidgets('shows the empty state', (tester) async {
       await tester.pumpWidget(
-        MyApp(music: FakeMusicService(), service: serviceWithList(0)),
+        app(music: FakeMusicService(), service: serviceWithList(0)),
       );
       await tester.pump();
 
@@ -175,7 +192,7 @@ void main() {
 
     testWidgets('type filter shows only Pokemon of that type', (tester) async {
       await tester.pumpWidget(
-        MyApp(music: FakeMusicService(), service: serviceWithList(3)),
+        app(music: FakeMusicService(), service: serviceWithList(3)),
       );
       await tester.pump();
       expect(find.text('Pokemon 2'), findsOneWidget);
@@ -191,12 +208,90 @@ void main() {
       expect(find.text('Pokemon 2'), findsOneWidget);
     });
   });
+  group('PokemonProvider', () {
+    test('goes from loading to success', () async {
+      final provider = PokemonProvider(serviceWithList(3));
+      expect(provider.status, PokemonStatus.loading);
+
+      final fetch = provider.fetchPokemon();
+      expect(provider.status, PokemonStatus.loading);
+      await fetch;
+
+      expect(provider.status, PokemonStatus.success);
+      expect(provider.pokemon, hasLength(3));
+    });
+
+    test('goes to error with a message when the API fails', () async {
+      final provider = PokemonProvider(
+        serviceReturning(http.Response('', 500)),
+      );
+      await provider.fetchPokemon();
+
+      expect(provider.status, PokemonStatus.error);
+      expect(provider.errorMessage, contains('500'));
+    });
+
+    test('notifies listeners on every state change', () async {
+      final provider = PokemonProvider(serviceWithList(1));
+      var notifications = 0;
+      provider.addListener(() => notifications++);
+
+      await provider.fetchPokemon();
+      expect(notifications, 2);
+    });
+
+    test('selectedPokemon follows selectPokemon', () async {
+      final provider = PokemonProvider(serviceWithList(3));
+      await provider.fetchPokemon();
+
+      provider.selectPokemon(2);
+      expect(provider.selectedPokemon?.name, 'pokemon-2');
+    });
+  });
+
+  group('Refresh and details', () {
+    testWidgets('refresh button calls the API again', (tester) async {
+      var listCalls = 0;
+      final service = PokemonService(
+        client: MockClient((req) async {
+          if (req.url.pathSegments.contains('type')) {
+            return typeResponse(req.url, 2);
+          }
+          listCalls++;
+          return http.Response(listBody(2), 200);
+        }),
+      );
+      await tester.pumpWidget(app(music: FakeMusicService(), service: service));
+      await tester.pump();
+      expect(listCalls, 1);
+
+      await tester.tap(find.byTooltip('Refresh'));
+      await tester.pump();
+      expect(listCalls, 2);
+      expect(find.text('Pokemon 2'), findsOneWidget);
+    });
+
+    testWidgets('tapping a card opens its detail page', (tester) async {
+      await tester.pumpWidget(
+        app(music: FakeMusicService(), service: serviceWithList(3)),
+      );
+      await tester.pump();
+
+      await tester.tap(find.text('Pokemon 2'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(GridView), findsNothing);
+      expect(find.text('#002'), findsOneWidget);
+      expect(find.text('Pokemon 2'), findsNWidgets(2));
+    });
+  });
+
   group('Background music', () {
     testWidgets('starts on launch and the sound icon toggles mute', (
       tester,
     ) async {
       final music = FakeMusicService();
-      await tester.pumpWidget(MyApp(music: music, service: serviceWithList(1)));
+      await tester.pumpWidget(app(music: music, service: serviceWithList(1)));
       await tester.pump();
 
       expect(music.startCalls, greaterThan(0));
@@ -211,7 +306,7 @@ void main() {
 
     testWidgets('buttons play the click sound', (tester) async {
       final music = FakeMusicService();
-      await tester.pumpWidget(MyApp(music: music, service: serviceWithList(1)));
+      await tester.pumpWidget(app(music: music, service: serviceWithList(1)));
       await tester.pump();
 
       await tester.tap(find.text('Fire'));
@@ -226,7 +321,7 @@ void main() {
       tester,
     ) async {
       final music = FakeMusicService();
-      await tester.pumpWidget(MyApp(music: music, service: serviceWithList(1)));
+      await tester.pumpWidget(app(music: music, service: serviceWithList(1)));
       await tester.pump();
 
       Size sliderSize() => tester.getSize(

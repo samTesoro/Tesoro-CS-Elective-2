@@ -5,88 +5,103 @@ import 'type_badge.dart';
 
 class PokemonCard extends StatelessWidget {
   final Pokemon pokemon;
+  final VoidCallback? onTap;
 
-  const PokemonCard({super.key, required this.pokemon});
+  const PokemonCard({super.key, required this.pokemon, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
-      decoration: pixelBox(color: theme.cardTheme.color ?? Colors.white),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest,
-                border: const Border(
-                  bottom: BorderSide(
-                    color: pixelBorderColor,
-                    width: pixelBorderWidth,
+    return GestureDetector(
+      onTap: onTap,
+      child: MouseRegion(
+        cursor: onTap == null ? MouseCursor.defer : SystemMouseCursors.click,
+        child: Container(
+          decoration: pixelBox(color: theme.cardTheme.color ?? Colors.white),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainerHighest,
+                    border: const Border(
+                      bottom: BorderSide(
+                        color: pixelBorderColor,
+                        width: pixelBorderWidth,
+                      ),
+                    ),
+                  ),
+                  padding: const EdgeInsets.all(12),
+                  child: Hero(
+                    tag: pokemonHeroTag(pokemon.id),
+                    child: Image.network(
+                      pokemon.imageUrl,
+                      fit: BoxFit.contain,
+                      loadingBuilder: (context, child, progress) {
+                        if (progress == null) return child;
+                        return const Center(
+                          child: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 3,
+                              strokeCap: StrokeCap.square,
+                            ),
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) => Icon(
+                        Icons.catching_pokemon,
+                        size: 56,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
                   ),
                 ),
               ),
-              padding: const EdgeInsets.all(12),
-              child: Image.network(
-                pokemon.imageUrl,
-                fit: BoxFit.contain,
-                loadingBuilder: (context, child, progress) {
-                  if (progress == null) return child;
-                  return const Center(
-                    child: SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 3,
-                        strokeCap: StrokeCap.square,
-                      ),
-                    ),
-                  );
-                },
-                errorBuilder: (context, error, stackTrace) => Icon(
-                  Icons.catching_pokemon,
-                  size: 56,
-                  color: theme.colorScheme.primary,
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
                 ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        pokemon.displayId,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.bold,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            pokemon.displayId,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                      ),
+                        for (final type in pokemon.types) ...[
+                          const SizedBox(width: 4),
+                          TypeIcon(type: type),
+                        ],
+                      ],
                     ),
-                    for (final type in pokemon.types) ...[
-                      const SizedBox(width: 4),
-                      TypeIcon(type: type),
-                    ],
+                    const SizedBox(height: 2),
+                    Text(
+                      pokemon.displayName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleLarge,
+                    ),
                   ],
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  pokemon.displayName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleLarge,
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 }
+
+String pokemonHeroTag(int id) => 'pokemon-image-$id';

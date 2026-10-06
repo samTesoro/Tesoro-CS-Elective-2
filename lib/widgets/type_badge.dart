@@ -31,13 +31,13 @@ class TypeIcon extends StatelessWidget {
 class TypeFilterChip extends StatelessWidget {
   final PokemonType? type;
   final bool selected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   const TypeFilterChip({
     super.key,
     required this.type,
     required this.selected,
-    required this.onTap,
+    this.onTap,
   });
 
   @override
@@ -57,12 +57,12 @@ class TypeFilterChip extends StatelessWidget {
     }
 
     return Semantics(
-      button: true,
+      button: onTap != null,
       selected: selected,
       child: GestureDetector(
         onTap: onTap,
         child: MouseRegion(
-          cursor: SystemMouseCursors.click,
+          cursor: onTap == null ? MouseCursor.defer : SystemMouseCursors.click,
           child: Container(
             padding: const EdgeInsets.fromLTRB(4, 2, 10, 2),
             decoration: BoxDecoration(
