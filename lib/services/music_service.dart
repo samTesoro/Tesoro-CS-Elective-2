@@ -81,6 +81,27 @@ class MusicService {
     return players;
   }
 
+  AudioPlayer? _cryPlayer;
+
+  /// Plays a Pokémon cry from a URL, mixed over the music. Ignores mute so
+  /// pressing the button always does something; uses the volume slider level.
+  Future<void> playCry(String url) async {
+    try {
+      final player = _cryPlayer ??= AudioPlayer();
+      await player.setAudioContext(
+        AudioContextConfig(
+          focus: AudioContextConfigFocus.mixWithOthers,
+        ).build(),
+      );
+      await player.stop();
+      await player.setReleaseMode(ReleaseMode.stop);
+      await player.setVolume(_volume == 0 ? 1 : _volume);
+      await player.play(UrlSource(url));
+    } catch (e) {
+      debugPrint('Cry could not play: $e');
+    }
+  }
+
   Future<void> toggleMute() async {
     _muted = !_muted;
     await _applyVolume();
@@ -117,6 +138,7 @@ class MusicService {
 
   Future<void> dispose() async {
     await _player?.dispose();
+    await _cryPlayer?.dispose();
     _player = null;
     _loading = null;
 

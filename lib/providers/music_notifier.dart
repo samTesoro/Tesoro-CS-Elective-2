@@ -30,6 +30,8 @@ class MusicNotifier extends Notifier<MusicState> {
   Future<void> playClick({bool ignoreMute = false}) =>
       _music.playClick(ignoreMute: ignoreMute);
 
+  Future<void> playCry(String url) => _music.playCry(url);
+
   Future<void> toggleMute() async {
     await _music.toggleMute();
     _sync();

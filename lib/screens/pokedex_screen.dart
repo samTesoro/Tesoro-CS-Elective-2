@@ -281,15 +281,22 @@ class _PokedexScreenState extends ConsumerState<PokedexScreen> {
                         : null,
                   ),
                 ),
-                child: Column(
-                  children: [
-                    if (!isMobile) FavoritesPanel(onOpen: _openDetails),
-                    Expanded(child: _buildBody(listState)),
-                  ],
+                child: SafeArea(
+                  // Keep content above transparent system nav bars.
+                  top: false,
+                  child: Column(
+                    children: [
+                      if (!isMobile) FavoritesPanel(onOpen: _openDetails),
+                      Expanded(child: _buildBody(listState)),
+                    ],
+                  ),
                 ),
               ),
             ),
-            if (isMobile) const Positioned.fill(child: FavoritesFab()),
+            if (isMobile)
+              const Positioned.fill(
+                child: SafeArea(top: false, child: FavoritesFab()),
+              ),
           ],
         ),
       ),

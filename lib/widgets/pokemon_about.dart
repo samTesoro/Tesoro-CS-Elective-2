@@ -49,6 +49,28 @@ class PokemonAbout extends ConsumerWidget {
   }
 }
 
+/// Speaker icon that plays the Pokémon's cry. Shares the About section's
+/// fetch; shows nothing until the cry URL is known (or if there is none).
+class PokemonCryButton extends ConsumerWidget {
+  final int pokemonId;
+
+  const PokemonCryButton({super.key, required this.pokemonId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final cryUrl = ref.watch(
+      pokemonDetailsProvider(pokemonId).select((d) => d.value?.cryUrl),
+    );
+    if (cryUrl == null) return const SizedBox.shrink();
+
+    return IconButton(
+      tooltip: 'Play cry',
+      icon: const Icon(Icons.volume_up),
+      onPressed: () => ref.read(musicProvider.notifier).playCry(cryUrl),
+    );
+  }
+}
+
 class _AboutContent extends StatelessWidget {
   final PokemonDetails details;
 

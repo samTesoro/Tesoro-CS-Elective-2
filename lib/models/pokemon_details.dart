@@ -13,6 +13,9 @@ class PokemonDetails {
 
   final List<String> abilities;
 
+  /// Audio URL of the Pokémon's cry (.ogg), or null if PokeAPI has none.
+  final String? cryUrl;
+
   /// Base stats in API order: HP, Attack, Defense, Sp. Atk, Sp. Def, Speed.
   final List<PokemonStat> stats;
 
@@ -22,6 +25,7 @@ class PokemonDetails {
     required this.heightM,
     required this.weightKg,
     required this.abilities,
+    this.cryUrl,
     required this.stats,
   });
 
@@ -42,6 +46,11 @@ class PokemonDetails {
           // Entries contain hard line/page breaks from the games.
           .replaceAll(RegExp(r'[\n\f\r]+'), ' ')
           .replaceAll('POKEMON', 'Pokemon'),
+      cryUrl: switch (pokemon['cries']) {
+        {'latest': final String url} => url,
+        {'legacy': final String url} => url,
+        _ => null,
+      },
       genus: _english(species['genera'], 'genus'),
       heightM: height / 10,
       weightKg: weight / 10,

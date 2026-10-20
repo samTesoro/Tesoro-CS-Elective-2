@@ -88,171 +88,207 @@ class PokemonDetailScreen extends ConsumerWidget {
                       : null,
                 ),
               ),
-              child: Column(
-                children: [
-                  if (!isMobile) FavoritesPanel(onOpen: openFavorite),
-                  Expanded(
-                    child: pokemon == null
-                        ? const StatusView(
-                            icon: Icons.catching_pokemon,
-                            title: 'Pokemon not found',
-                            message: 'This Pokemon is no longer in the list.',
-                          )
-                        : Center(
-                            child: SingleChildScrollView(
-                              padding: const EdgeInsets.all(24),
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                  maxWidth: 420,
-                                ),
-                                child: Container(
-                                  decoration: pixelBox(
-                                    color:
-                                        theme.cardTheme.color ?? Colors.white,
+              child: SafeArea(
+                // Keep content above transparent system nav bars.
+                top: false,
+                child: Column(
+                  children: [
+                    if (!isMobile) FavoritesPanel(onOpen: openFavorite),
+                    Expanded(
+                      child: pokemon == null
+                          ? const StatusView(
+                              icon: Icons.catching_pokemon,
+                              title: 'Pokemon not found',
+                              message: 'This Pokemon is no longer in the list.',
+                            )
+                          : Center(
+                              child: SingleChildScrollView(
+                                padding: const EdgeInsets.all(24),
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: 420,
                                   ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      Container(
-                                        height: 300,
-                                        decoration: BoxDecoration(
-                                          color: theme
-                                              .colorScheme
-                                              .surfaceContainerHighest,
-                                          border: const Border(
-                                            bottom: BorderSide(
-                                              color: pixelBorderColor,
-                                              width: pixelBorderWidth,
+                                  child: Container(
+                                    decoration: pixelBox(
+                                      color:
+                                          theme.cardTheme.color ?? Colors.white,
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        Container(
+                                          height: 300,
+                                          decoration: BoxDecoration(
+                                            color: theme
+                                                .colorScheme
+                                                .surfaceContainerHighest,
+                                            border: const Border(
+                                              bottom: BorderSide(
+                                                color: pixelBorderColor,
+                                                width: pixelBorderWidth,
+                                              ),
                                             ),
                                           ),
+                                          child: Stack(
+                                            children: [
+                                              Positioned.fill(
+                                                child: Padding(
+                                                  padding: const EdgeInsets.all(
+                                                    24,
+                                                  ),
+                                                  child: Hero(
+                                                    tag: pokemonHeroTag(
+                                                      pokemon.id,
+                                                    ),
+                                                    child: PokemonImage(
+                                                      url: pokemon.imageUrl,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              Positioned(
+                                                top: 4,
+                                                right: 4,
+                                                child: FavoriteHeartButton(
+                                                  pokemonId: pokemon.id,
+                                                  size: 34,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                        child: Stack(
+                                        Stack(
+                                          // Keep the card's full width so the
+                                          // text stays centered.
+                                          fit: StackFit.passthrough,
                                           children: [
-                                            Positioned.fill(
-                                              child: Padding(
-                                                padding: const EdgeInsets.all(
-                                                  24,
-                                                ),
-                                                child: Hero(
-                                                  tag: pokemonHeroTag(
-                                                    pokemon.id,
+                                            Padding(
+                                              // Side room for the corner icons.
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 52,
+                                                    vertical: 20,
                                                   ),
-                                                  child: PokemonImage(
-                                                    url: pokemon.imageUrl,
+                                              child: Column(
+                                                children: [
+                                                  Text(
+                                                    pokemon.displayId,
+                                                    style: theme
+                                                        .textTheme
+                                                        .headlineMedium
+                                                        ?.copyWith(
+                                                          color: theme
+                                                              .colorScheme
+                                                              .primary,
+                                                        ),
                                                   ),
+                                                  const SizedBox(height: 4),
+                                                  // Nickname as the headline when set;
+                                                  // the original name stays visible.
+                                                  Text(
+                                                    nickname == null
+                                                        ? pokemon.displayName
+                                                        : '"$nickname"',
+                                                    textAlign: TextAlign.center,
+                                                    style: theme
+                                                        .textTheme
+                                                        .headlineLarge,
+                                                  ),
+                                                  if (nickname != null)
+                                                    Text(
+                                                      'Original name: '
+                                                      '${pokemon.displayName}',
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      style: theme
+                                                          .textTheme
+                                                          .bodyLarge,
+                                                    ),
+                                                  if (pokemon
+                                                      .types
+                                                      .isNotEmpty) ...[
+                                                    const SizedBox(height: 16),
+                                                    Wrap(
+                                                      spacing: 8,
+                                                      runSpacing: 8,
+                                                      alignment:
+                                                          WrapAlignment.center,
+                                                      children: [
+                                                        for (final type
+                                                            in pokemon.types)
+                                                          TypeFilterChip(
+                                                            type: type,
+                                                            selected: true,
+                                                          ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ],
+                                              ),
+                                            ),
+                                            Positioned(
+                                              top: 4,
+                                              left: 4,
+                                              child: IconButton(
+                                                tooltip: nickname == null
+                                                    ? 'Add nickname'
+                                                    : 'Edit nickname',
+                                                icon: const Icon(
+                                                  Icons.edit,
+                                                  size: 20,
                                                 ),
+                                                onPressed: () {
+                                                  ref
+                                                      .read(
+                                                        musicProvider.notifier,
+                                                      )
+                                                      .playClick();
+                                                  showNicknameEditor(
+                                                    context,
+                                                    pokemon,
+                                                  );
+                                                },
                                               ),
                                             ),
                                             Positioned(
                                               top: 4,
                                               right: 4,
-                                              child: FavoriteHeartButton(
+                                              child: PokemonCryButton(
                                                 pokemonId: pokemon.id,
-                                                size: 34,
                                               ),
                                             ),
                                           ],
                                         ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(20),
-                                        child: Column(
-                                          children: [
-                                            Text(
-                                              pokemon.displayId,
-                                              style: theme
-                                                  .textTheme
-                                                  .headlineMedium
-                                                  ?.copyWith(
-                                                    color: theme
-                                                        .colorScheme
-                                                        .primary,
-                                                  ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            // Nickname as the headline when set;
-                                            // the original name stays visible.
-                                            Text(
-                                              nickname == null
-                                                  ? pokemon.displayName
-                                                  : '"$nickname"',
-                                              textAlign: TextAlign.center,
-                                              style:
-                                                  theme.textTheme.headlineLarge,
-                                            ),
-                                            if (nickname != null)
-                                              Text(
-                                                'Original name: '
-                                                '${pokemon.displayName}',
-                                                textAlign: TextAlign.center,
-                                                style:
-                                                    theme.textTheme.bodyLarge,
+                                        Container(
+                                          decoration: const BoxDecoration(
+                                            border: Border(
+                                              top: BorderSide(
+                                                color: pixelBorderColor,
+                                                width: pixelBorderWidth,
                                               ),
-                                            if (pokemon.types.isNotEmpty) ...[
-                                              const SizedBox(height: 16),
-                                              Wrap(
-                                                spacing: 8,
-                                                runSpacing: 8,
-                                                alignment: WrapAlignment.center,
-                                                children: [
-                                                  for (final type
-                                                      in pokemon.types)
-                                                    TypeFilterChip(
-                                                      type: type,
-                                                      selected: true,
-                                                    ),
-                                                ],
-                                              ),
-                                            ],
-                                            const SizedBox(height: 20),
-                                            OutlinedButton.icon(
-                                              onPressed: () {
-                                                ref
-                                                    .read(
-                                                      musicProvider.notifier,
-                                                    )
-                                                    .playClick();
-                                                showNicknameEditor(
-                                                  context,
-                                                  pokemon,
-                                                );
-                                              },
-                                              icon: const Icon(Icons.edit),
-                                              label: Text(
-                                                nickname == null
-                                                    ? 'Add nickname'
-                                                    : 'Edit nickname',
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Container(
-                                        decoration: const BoxDecoration(
-                                          border: Border(
-                                            top: BorderSide(
-                                              color: pixelBorderColor,
-                                              width: pixelBorderWidth,
                                             ),
                                           ),
+                                          child: PokemonAbout(
+                                            pokemonId: pokemon.id,
+                                          ),
                                         ),
-                                        child: PokemonAbout(
-                                          pokemonId: pokemon.id,
-                                        ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-          if (isMobile) const Positioned.fill(child: FavoritesFab()),
+          if (isMobile)
+            const Positioned.fill(
+              child: SafeArea(top: false, child: FavoritesFab()),
+            ),
         ],
       ),
     );
