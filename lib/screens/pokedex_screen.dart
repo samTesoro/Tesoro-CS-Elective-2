@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../models/pokemon.dart';
 import '../models/pokemon_type.dart';
-import '../providers/music_provider.dart';
-import '../providers/pokemon_provider.dart';
-import '../providers/theme_provider.dart';
+import '../providers/favorites_notifier.dart';
+import '../providers/filter_notifiers.dart';
+import '../providers/music_notifier.dart';
+import '../providers/pokemon_list_notifier.dart';
+import '../providers/theme_notifier.dart';
 import '../theme.dart';
+import '../widgets/favorites_panel.dart';
+import '../widgets/nickname_dialog.dart';
 import '../widgets/pokeball_spinner.dart';
 import '../widgets/pokemon_card.dart';
 import '../widgets/status_view.dart';
@@ -13,22 +18,28 @@ import '../widgets/type_badge.dart';
 import '../widgets/volume_control.dart';
 import 'pokemon_detail_screen.dart';
 
-class PokedexScreen extends StatefulWidget {
+/// Home page: Pokémon grid + search + type filter + favorites panel.
+///
+/// ConsumerStatefulWidget only because it owns the search box's
+/// TextEditingController. Every value on screen comes from Riverpod.
+class PokedexScreen extends ConsumerStatefulWidget {
   const PokedexScreen({super.key});
 
   @override
-  State<PokedexScreen> createState() => _PokedexScreenState();
+  ConsumerState<PokedexScreen> createState() => _PokedexScreenState();
 }
 
-class _PokedexScreenState extends State<PokedexScreen> {
+class _PokedexScreenState extends ConsumerState<PokedexScreen> {
   late final _searchController = TextEditingController(
-    text: context.read<PokemonProvider>().query,
+    text: ref.read(searchQueryProvider),
   );
 
   @override
   void initState() {
     super.initState();
-    context.read<MusicProvider>().start();
+    // First load: the same fetch() method that refresh uses.
+    ref.read(pokemonListProvider.notifier).fetch();
+    ref.read(musicProvider.notifier).start();
   }
 
   @override
@@ -38,16 +49,14 @@ class _PokedexScreenState extends State<PokedexScreen> {
   }
 
   VoidCallback _withClick(VoidCallback action) => () {
-    context.read<MusicProvider>().playClick();
+    ref.read(musicProvider.notifier).playClick();
     action();
   };
 
-  void _openDetails(int id) {
-    context.read<PokemonProvider>().selectPokemon(id);
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const PokemonDetailScreen()),
-    );
-  }
+  /// Refresh = RECALL the existing fetch() method (no new method).
+  Future<void> _refresh() => ref.read(pokemonListProvider.notifier).fetch();
+
+  void _openDetails(int id) => openPokemonDetails(context, id);
 
   Widget _buildTypeFilter(PokemonType? selectedType) {
     return SizedBox(
@@ -58,86 +67,111 @@ class _PokedexScreenState extends State<PokedexScreen> {
         itemCount: PokemonType.values.length + 1,
         separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
+          // Index 0 is "All", which clears the filter.
           final type = index == 0 ? null : PokemonType.values[index - 1];
           return TypeFilterChip(
             type: type,
             selected: selectedType == type,
-            onTap: _withClick(
-              () => context.read<PokemonProvider>().selectType(type),
-            ),
+            onTap: _withClick(() {
+              final filter = ref.read(typeFilterProvider.notifier);
+              type == null ? filter.clear() : filter.select(type);
+            }),
           );
         },
       ),
     );
   }
 
-  Widget _buildBody(PokemonProvider provider) {
-    switch (provider.status) {
-      case PokemonStatus.loading:
-        return const Center(child: PokeballSpinner(size: 80));
-
-      case PokemonStatus.error:
-        return StatusView(
-          icon: Icons.wifi_off_rounded,
-          title: 'Something went wrong',
-          message: provider.errorMessage,
-          onRetry: _withClick(provider.fetchPokemon),
-        );
-
-      case PokemonStatus.success:
-        if (provider.pokemon.isEmpty) {
-          return StatusView(
-            icon: Icons.catching_pokemon,
-            title: 'No Pokemon found',
-            message: 'The PokeAPI returned an empty list.',
-            onRetry: _withClick(provider.fetchPokemon),
-          );
-        }
-
-        final results = provider.filteredPokemon;
-        if (results.isEmpty) {
-          return StatusView(
-            icon: Icons.search_off,
-            title: 'No match',
-            message: provider.noMatchMessage,
-          );
-        }
-
-        return RefreshIndicator(
-          onRefresh: provider.fetchPokemon,
-          child: GridView.builder(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(12),
-            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: 200,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 0.8,
-            ),
-            itemCount: results.length,
-            itemBuilder: (context, index) {
-              final pokemon = results[index];
-              return PokemonCard(
-                pokemon: pokemon,
-                onTap: _withClick(() => _openDetails(pokemon.id)),
-              );
-            },
-          ),
-        );
+  Widget _buildBody(AsyncValue<List<Pokemon>> listState) {
+    // Loading state
+    if (listState.isLoading) {
+      return const Center(child: PokeballSpinner(size: 80));
     }
+
+    // Error state
+    if (listState.hasError) {
+      return StatusView(
+        icon: Icons.wifi_off_rounded,
+        title: 'Something went wrong',
+        message: '${listState.error}',
+        onRetry: _withClick(_refresh),
+      );
+    }
+
+    // Success state
+    final all = ref.watch(loadedPokemonProvider);
+    if (all.isEmpty) {
+      return StatusView(
+        icon: Icons.catching_pokemon,
+        title: 'No Pokemon found',
+        message: 'The PokeAPI returned an empty list.',
+        onRetry: _withClick(_refresh),
+      );
+    }
+
+    final results = ref.watch(filteredPokemonProvider);
+    return RefreshIndicator(
+      onRefresh: _refresh,
+      child: results.isEmpty
+          // ListView so pull-to-refresh still works on the "no match" view.
+          ? ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [_buildNoMatch()],
+            )
+          : GridView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(12),
+              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: 200,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                childAspectRatio: 0.72,
+              ),
+              itemCount: results.length,
+              itemBuilder: (context, index) {
+                final pokemon = results[index];
+                return PokemonCard(
+                  key: ValueKey(pokemon.id),
+                  pokemon: pokemon,
+                  onTap: _withClick(() => _openDetails(pokemon.id)),
+                  onLongPress: () => showNicknameEditor(context, pokemon),
+                );
+              },
+            ),
+    );
+  }
+
+  Widget _buildNoMatch() {
+    final query = ref.watch(searchQueryProvider);
+    final type = ref.watch(typeFilterProvider);
+    return Padding(
+      padding: const EdgeInsets.only(top: 40),
+      child: StatusView(
+        icon: Icons.search_off,
+        title: 'No match',
+        message: noMatchMessage(query: query, type: type),
+        actionLabel: 'Clear filters',
+        actionIcon: Icons.filter_alt_off,
+        onRetry: _withClick(() {
+          _searchController.clear();
+          ref.read(searchQueryProvider.notifier).clear();
+          ref.read(typeFilterProvider.notifier).clear();
+        }),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = context.watch<ThemeProvider>().isDark;
-    final query = context.select((PokemonProvider p) => p.query);
-    final selectedType = context.select((PokemonProvider p) => p.selectedType);
-    final isLoading = context.select(
-      (PokemonProvider p) => p.status == PokemonStatus.loading,
-    );
+    final isDark = ref.watch(themeProvider) == ThemeMode.dark;
+    final listState = ref.watch(pokemonListProvider);
+    final query = ref.watch(searchQueryProvider);
+    final selectedType = ref.watch(typeFilterProvider);
+    final favoriteCount = ref.watch(favoritesProvider.select((s) => s.length));
+    final isPanelOpen = ref.watch(favoritesPanelProvider);
 
     return Listener(
-      onPointerDown: (_) => context.read<MusicProvider>().start(),
+      onPointerDown: (_) => ref.read(musicProvider.notifier).start(),
       child: Scaffold(
         appBar: AppBar(
           toolbarHeight: 72,
@@ -145,9 +179,7 @@ class _PokedexScreenState extends State<PokedexScreen> {
           leading: IconButton(
             tooltip: 'Refresh',
             icon: const Icon(Icons.refresh),
-            onPressed: isLoading
-                ? null
-                : _withClick(context.read<PokemonProvider>().fetchPokemon),
+            onPressed: listState.isLoading ? null : _withClick(_refresh),
           ),
           title: Image.asset(
             'assets/pokedex_logo.png',
@@ -156,10 +188,26 @@ class _PokedexScreenState extends State<PokedexScreen> {
           ),
           actions: [
             const VolumeControl(),
+            // Opens / closes the favorites panel from the AppBar too.
+            IconButton(
+              tooltip: isPanelOpen ? 'Hide favorites' : 'Show favorites',
+              icon: Badge(
+                isLabelVisible: favoriteCount > 0,
+                label: Text('$favoriteCount'),
+                child: Icon(
+                  isPanelOpen ? Icons.favorite : Icons.favorite_border,
+                ),
+              ),
+              onPressed: _withClick(
+                ref.read(favoritesPanelProvider.notifier).toggle,
+              ),
+            ),
             IconButton(
               tooltip: isDark ? 'Light mode' : 'Dark mode',
               icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
-              onPressed: _withClick(context.read<ThemeProvider>().toggleTheme),
+              onPressed: _withClick(
+                ref.read(themeProvider.notifier).toggleTheme,
+              ),
             ),
           ],
           bottom: PreferredSize(
@@ -170,7 +218,7 @@ class _PokedexScreenState extends State<PokedexScreen> {
                   padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
                   child: TextField(
                     controller: _searchController,
-                    onChanged: context.read<PokemonProvider>().setQuery,
+                    onChanged: ref.read(searchQueryProvider.notifier).set,
                     textInputAction: TextInputAction.search,
                     style: TextStyle(
                       fontSize: 20,
@@ -193,7 +241,7 @@ class _PokedexScreenState extends State<PokedexScreen> {
                               ),
                               onPressed: _withClick(() {
                                 _searchController.clear();
-                                context.read<PokemonProvider>().setQuery('');
+                                ref.read(searchQueryProvider.notifier).clear();
                               }),
                             ),
                     ),
@@ -218,8 +266,11 @@ class _PokedexScreenState extends State<PokedexScreen> {
                   : null,
             ),
           ),
-          child: Consumer<PokemonProvider>(
-            builder: (context, provider, _) => _buildBody(provider),
+          child: Column(
+            children: [
+              FavoritesPanel(onOpen: _openDetails),
+              Expanded(child: _buildBody(listState)),
+            ],
           ),
         ),
       ),

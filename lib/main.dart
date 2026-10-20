@@ -1,35 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'providers/music_provider.dart';
-import 'providers/pokemon_provider.dart';
-import 'providers/theme_provider.dart';
+import 'providers/theme_notifier.dart';
 import 'screens/pokedex_screen.dart';
-import 'services/music_service.dart';
-import 'services/pokemon_service.dart';
 import 'theme.dart';
 
 void main() {
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(
-          create: (_) => PokemonProvider(PokemonService())..fetchPokemon(),
-        ),
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => MusicProvider(MusicService())),
-      ],
-      child: const MyApp(),
-    ),
-  );
+  // ProviderScope stores the state of every Riverpod provider in the app.
+  // It replaces the MultiProvider we used with the Provider package.
+  runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final themeMode = context.watch<ThemeProvider>().themeMode;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeProvider);
 
     return MaterialApp(
       title: 'Pokedex',

@@ -8,12 +8,18 @@ class StatusView extends StatelessWidget {
   final String message;
   final VoidCallback? onRetry;
 
+  /// Button text/icon; defaults to "Try Again" for retrying a fetch.
+  final String actionLabel;
+  final IconData actionIcon;
+
   const StatusView({
     super.key,
     required this.icon,
     required this.title,
     required this.message,
     this.onRetry,
+    this.actionLabel = 'Try Again',
+    this.actionIcon = Icons.refresh,
   });
 
   @override
@@ -45,8 +51,8 @@ class StatusView extends StatelessWidget {
               const SizedBox(height: 24),
               ElevatedButton.icon(
                 onPressed: onRetry,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Try Again'),
+                icon: Icon(actionIcon),
+                label: Text(actionLabel),
               ),
             ],
           ],
