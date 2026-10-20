@@ -268,69 +268,105 @@ class _FavoriteTile extends ConsumerWidget {
   }
 }
 
-/// Mobile floating favorites button: a square pixel box with a pixel-art
-/// heart and a boxy count badge. Opens the nearest Scaffold's end drawer.
+/// Mobile floating favorites button: a small square pixel box with a
+/// pixel-art heart and a boxy count badge. Tap to open the nearest
+/// Scaffold's end drawer; drag to move it anywhere over the body.
+///
+/// Fills its parent (put it in a `Positioned.fill` over the body) so it
+/// knows how far it can be dragged; only the button itself takes touches.
 class FavoritesFab extends ConsumerWidget {
+  static const _size = 48.0;
+
+  /// Keeps the button (and its badge) clear of the edges.
+  static const _margin = 16.0;
+
   const FavoritesFab({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final favoriteCount = ref.watch(favoritesProvider.select((s) => s.length));
+    final saved = ref.watch(favoritesFabPositionProvider);
 
-    return Semantics(
-      button: true,
-      label: 'Show favorites',
-      child: GestureDetector(
-        onTap: () {
-          ref.read(musicProvider.notifier).playClick();
-          Scaffold.of(context).openEndDrawer();
-        },
-        child: SizedBox(
-          width: 68,
-          height: 68,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Positioned.fill(
-                child: Container(
-                  decoration: pixelBox(
-                    color: theme.cardTheme.color ?? Colors.white,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxX = constraints.maxWidth - _size - _margin;
+        final maxY = constraints.maxHeight - _size - _margin;
+        // Clamped on every build so it stays on screen after a resize.
+        Offset clamp(Offset o) => Offset(
+          o.dx.clamp(_margin, maxX < _margin ? _margin : maxX),
+          o.dy.clamp(_margin, maxY < _margin ? _margin : maxY),
+        );
+        final position = clamp(saved ?? Offset(maxX, maxY));
+
+        return Stack(
+          children: [
+            Positioned(
+              left: position.dx,
+              top: position.dy,
+              child: Semantics(
+                button: true,
+                label: 'Show favorites',
+                child: GestureDetector(
+                  onTap: () {
+                    ref.read(musicProvider.notifier).playClick();
+                    Scaffold.of(context).openEndDrawer();
+                  },
+                  onPanUpdate: (details) => ref
+                      .read(favoritesFabPositionProvider.notifier)
+                      .set(clamp(position + details.delta)),
+                  child: SizedBox(
+                    width: _size,
+                    height: _size,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Positioned.fill(
+                          child: Container(
+                            decoration: pixelBox(
+                              color: theme.cardTheme.color ?? Colors.white,
+                            ),
+                            alignment: Alignment.center,
+                            child: const PixelHeart(size: 22),
+                          ),
+                        ),
+                        if (favoriteCount > 0)
+                          Positioned(
+                            top: -8,
+                            right: -8,
+                            child: Container(
+                              constraints: const BoxConstraints(minWidth: 20),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: accentRed,
+                                border: Border.all(
+                                  color: pixelBorderColor,
+                                  width: 2,
+                                ),
+                              ),
+                              child: Text(
+                                '$favoriteCount',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontFamily: 'PokemonPixel',
+                                  fontSize: 16,
+                                  height: 1.1,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-                  alignment: Alignment.center,
-                  child: const PixelHeart(size: 32),
                 ),
               ),
-              if (favoriteCount > 0)
-                Positioned(
-                  top: -10,
-                  right: -10,
-                  child: Container(
-                    constraints: const BoxConstraints(minWidth: 28),
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    decoration: BoxDecoration(
-                      color: accentRed,
-                      border: Border.all(
-                        color: pixelBorderColor,
-                        width: pixelBorderWidth,
-                      ),
-                    ),
-                    child: Text(
-                      '$favoriteCount',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontFamily: 'PokemonPixel',
-                        fontSize: 22,
-                        height: 1.1,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

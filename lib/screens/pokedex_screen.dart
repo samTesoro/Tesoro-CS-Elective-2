@@ -265,26 +265,32 @@ class _PokedexScreenState extends ConsumerState<PokedexScreen> {
           ),
         ),
         endDrawer: isMobile ? FavoritesDrawer(onOpen: _openDetails) : null,
-        floatingActionButton: !isMobile ? null : const FavoritesFab(),
-        body: Container(
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: const AssetImage('assets/pokedex_background.jpg'),
-              fit: BoxFit.cover,
-              colorFilter: isDark
-                  ? ColorFilter.mode(
-                      Colors.black.withValues(alpha: 0.6),
-                      BlendMode.srcATop,
-                    )
-                  : null,
+        body: Stack(
+          children: [
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: const AssetImage('assets/pokedex_background.jpg'),
+                    fit: BoxFit.cover,
+                    colorFilter: isDark
+                        ? ColorFilter.mode(
+                            Colors.black.withValues(alpha: 0.6),
+                            BlendMode.srcATop,
+                          )
+                        : null,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    if (!isMobile) FavoritesPanel(onOpen: _openDetails),
+                    Expanded(child: _buildBody(listState)),
+                  ],
+                ),
+              ),
             ),
-          ),
-          child: Column(
-            children: [
-              if (!isMobile) FavoritesPanel(onOpen: _openDetails),
-              Expanded(child: _buildBody(listState)),
-            ],
-          ),
+            if (isMobile) const Positioned.fill(child: FavoritesFab()),
+          ],
         ),
       ),
     );

@@ -1,3 +1,5 @@
+import 'dart:ui' show Offset;
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/pokemon.dart';
@@ -59,3 +61,18 @@ class FavoritesPanelNotifier extends Notifier<bool> {
 final favoritesPanelProvider = NotifierProvider<FavoritesPanelNotifier, bool>(
   FavoritesPanelNotifier.new,
 );
+
+/// Where the mobile favorites button was dragged to (top-left, in body
+/// coordinates). `null` until first dragged, meaning the bottom-right corner.
+/// Shared so the button stays put between the home and details screens.
+class FavoritesFabPositionNotifier extends Notifier<Offset?> {
+  @override
+  Offset? build() => null;
+
+  void set(Offset position) => state = position;
+}
+
+final favoritesFabPositionProvider =
+    NotifierProvider<FavoritesFabPositionNotifier, Offset?>(
+      FavoritesFabPositionNotifier.new,
+    );
