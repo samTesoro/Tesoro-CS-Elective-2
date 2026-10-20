@@ -1,13 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/pokemon.dart';
+import '../models/pokemon_details.dart';
 import 'service_providers.dart';
 
-/// Feature 1 — Pokémon List Management.
+/// Feature 1 — Pokemon List Management.
 ///
-/// Holds the Pokémon list as an `AsyncValue`, which already models the three
+/// Holds the Pokemon list as an `AsyncValue`, which already models the three
 /// states the exam asks for:
-///   AsyncLoading -> show the Pokéball spinner
+///   AsyncLoading -> show the Pokeball spinner
 ///   AsyncData    -> show the grid
 ///   AsyncError   -> show the error message + Try Again
 ///
@@ -55,10 +56,17 @@ final loadedPokemonProvider = Provider<List<Pokemon>>((ref) {
   };
 });
 
-/// Looks up one Pokémon by ID (used by the details screen).
+/// Looks up one Pokemon by ID (used by the details screen).
 final pokemonByIdProvider = Provider.family<Pokemon?, int>((ref, id) {
   for (final pokemon in ref.watch(loadedPokemonProvider)) {
     if (pokemon.id == id) return pokemon;
   }
   return null;
 });
+
+/// Bio, profile and stats for one Pokemon, fetched when its details page
+/// opens. Cached while the page is open; refetched next time if it failed.
+final pokemonDetailsProvider = FutureProvider.autoDispose
+    .family<PokemonDetails, int>((ref, id) {
+      return ref.read(pokemonServiceProvider).fetchDetails(id);
+    });

@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Feature 2 — Pokémon Nickname Editor.
+/// Feature 2 — Pokemon Nickname Editor.
 ///
-/// State is a map of Pokémon ID -> nickname. The Pokémon model itself is
+/// State is a map of Pokemon ID -> nickname. The Pokemon model itself is
 /// never changed, so the original name is always kept.
 ///
 /// Riverpod only notifies listeners when the new state is `!=` the old one,

@@ -12,7 +12,7 @@ import 'type_badge.dart';
 /// heart for the favorite status.
 ///
 /// It is a ConsumerWidget that `watch`es ONLY its own nickname and favorite
-/// flag (via `select`), so editing one Pokémon rebuilds just that card.
+/// flag (via `select`), so editing one Pokemon rebuilds just that card.
 class PokemonCard extends ConsumerWidget {
   final Pokemon pokemon;
   final VoidCallback? onTap;
@@ -130,7 +130,7 @@ class PokemonCard extends ConsumerWidget {
   }
 }
 
-/// Feature 4 — the heart. Filled red when the Pokémon is a favorite,
+/// Feature 4 — the heart. Filled red when the Pokemon is a favorite,
 /// outlined when not. Tapping it calls FavoritesNotifier.toggle().
 class FavoriteHeartButton extends ConsumerWidget {
   final int pokemonId;

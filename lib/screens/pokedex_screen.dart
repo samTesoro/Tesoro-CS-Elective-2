@@ -18,7 +18,7 @@ import '../widgets/type_badge.dart';
 import '../widgets/volume_control.dart';
 import 'pokemon_detail_screen.dart';
 
-/// Home page: Pokémon grid + search + type filter + favorites panel.
+/// Home page: Pokemon grid + search + type filter + favorites panel.
 ///
 /// ConsumerStatefulWidget only because it owns the search box's
 /// TextEditingController. Every value on screen comes from Riverpod.

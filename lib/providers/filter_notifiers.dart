@@ -4,7 +4,7 @@ import '../models/pokemon.dart';
 import '../models/pokemon_type.dart';
 import 'pokemon_list_notifier.dart';
 
-/// Feature 5 — Pokémon Type Filter. `null` means "All" (no filter).
+/// Feature 5 — Pokemon Type Filter. `null` means "All" (no filter).
 class TypeFilterNotifier extends Notifier<PokemonType?> {
   @override
   PokemonType? build() => null;

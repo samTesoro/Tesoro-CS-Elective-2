@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/pokemon.dart';
 import 'pokemon_list_notifier.dart';
 
-/// Features 3 & 4 — Favorite Pokémon and the heart indicator.
+/// Features 3 & 4 — Favorite Pokemon and the heart indicator.
 ///
-/// State is the set of favorite Pokémon IDs, in the order they were added.
+/// State is the set of favorite Pokemon IDs, in the order they were added.
 /// IDs (not Pokemon objects) are stored so favorites survive a refresh of
 /// the list.
 class FavoritesNotifier extends Notifier<Set<int>> {
@@ -32,7 +32,7 @@ final favoritesProvider = NotifierProvider<FavoritesNotifier, Set<int>>(
   FavoritesNotifier.new,
 );
 
-/// The favorite Pokémon objects for the favorites panel. Recomputes
+/// The favorite Pokemon objects for the favorites panel. Recomputes
 /// automatically when a favorite is added/removed or the list reloads.
 final favoritePokemonProvider = Provider<List<Pokemon>>((ref) {
   final ids = ref.watch(favoritesProvider);

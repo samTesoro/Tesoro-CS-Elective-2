@@ -9,18 +9,19 @@ import '../providers/theme_notifier.dart';
 import '../theme.dart';
 import '../widgets/favorites_panel.dart';
 import '../widgets/nickname_dialog.dart';
+import '../widgets/pokemon_about.dart';
 import '../widgets/pokemon_card.dart';
 import '../widgets/status_view.dart';
 import '../widgets/type_badge.dart';
 
-/// Pushes the details page for the Pokémon with [id].
+/// Pushes the details page for the Pokemon with [id].
 void openPokemonDetails(BuildContext context, int id) {
   Navigator.of(context).push(
     MaterialPageRoute<void>(builder: (_) => PokemonDetailScreen(pokemonId: id)),
   );
 }
 
-/// Details page. Only the ID travels through the route; the Pokémon, its
+/// Details page. Only the ID travels through the route; the Pokemon, its
 /// nickname and its favorite status are all read from Riverpod, so editing
 /// the nickname here updates the grid card at the same time.
 class PokemonDetailScreen extends ConsumerWidget {
@@ -204,6 +205,17 @@ class PokemonDetailScreen extends ConsumerWidget {
                                       ),
                                     ],
                                   ),
+                                ),
+                                Container(
+                                  decoration: const BoxDecoration(
+                                    border: Border(
+                                      top: BorderSide(
+                                        color: pixelBorderColor,
+                                        width: pixelBorderWidth,
+                                      ),
+                                    ),
+                                  ),
+                                  child: PokemonAbout(pokemonId: pokemon.id),
                                 ),
                               ],
                             ),

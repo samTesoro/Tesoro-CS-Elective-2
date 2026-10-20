@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../models/pokemon.dart';
+import '../models/pokemon_details.dart';
 import '../models/pokemon_type.dart';
 
 class PokemonServiceException implements Exception {
@@ -17,6 +18,7 @@ class PokemonServiceException implements Exception {
 
 class PokemonService {
   static const _baseUrl = 'https://pokeapi.co/api/v2/pokemon';
+  static const _speciesUrl = 'https://pokeapi.co/api/v2/pokemon-species';
   static const _typeUrl = 'https://pokeapi.co/api/v2/type';
   static const _timeout = Duration(seconds: 10);
 
@@ -41,6 +43,29 @@ class PokemonService {
           .map(Pokemon.fromJson)
           .map((p) => p.withTypes(typesByName[p.name] ?? const []))
           .toList();
+    } on TimeoutException {
+      throw const PokemonServiceException(
+        'The request timed out. Check your connection and try again.',
+      );
+    } on http.ClientException {
+      throw const PokemonServiceException(
+        'No internet connection. Please check your network.',
+      );
+    } on FormatException {
+      throw const PokemonServiceException(
+        'Received invalid data from the PokeAPI.',
+      );
+    }
+  }
+
+  /// Bio, profile and base stats for the details page.
+  Future<PokemonDetails> fetchDetails(int id) async {
+    try {
+      final [pokemon, species] = await Future.wait([
+        _getJson(Uri.parse('$_baseUrl/$id')),
+        _getJson(Uri.parse('$_speciesUrl/$id')),
+      ]);
+      return PokemonDetails.fromJson(pokemon, species);
     } on TimeoutException {
       throw const PokemonServiceException(
         'The request timed out. Check your connection and try again.',
