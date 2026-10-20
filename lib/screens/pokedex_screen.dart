@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/pokemon.dart';
@@ -57,6 +58,28 @@ class _PokedexScreenState extends ConsumerState<PokedexScreen> {
   Future<void> _refresh() => ref.read(pokemonListProvider.notifier).fetch();
 
   void _openDetails(int id) => openPokemonDetails(context, id);
+
+  /// When back was last pressed on this screen, for "press again to exit".
+  DateTime? _lastBackPress;
+
+  void _handleBack(bool didPop, Object? result) {
+    if (didPop) return;
+    final now = DateTime.now();
+    final last = _lastBackPress;
+    if (last != null && now.difference(last) < const Duration(seconds: 2)) {
+      SystemNavigator.pop();
+      return;
+    }
+    _lastBackPress = now;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+          content: Text('Press back again to exit'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+  }
 
   Widget _buildTypeFilter(PokemonType? selectedType) {
     return SizedBox(
@@ -173,131 +196,138 @@ class _PokedexScreenState extends ConsumerState<PokedexScreen> {
     // AppBar button and inline panel, which crowd the small screen.
     final isMobile = MediaQuery.sizeOf(context).width < 600;
 
-    return Listener(
-      onPointerDown: (_) => ref.read(musicProvider.notifier).start(),
-      child: Scaffold(
-        appBar: AppBar(
-          toolbarHeight: 72,
-          centerTitle: true,
-          automaticallyImplyActions: false,
-          // Room for the volume slider, which slides out on hover (desktop).
-          leadingWidth: isMobile ? 96 : 216,
-          leading: Row(
-            children: [
-              IconButton(
-                tooltip: 'Refresh',
-                icon: const Icon(Icons.refresh),
-                onPressed: listState.isLoading ? null : _withClick(_refresh),
-              ),
-              const VolumeControl(),
-            ],
-          ),
-          title: Image.asset(
-            'assets/pokedex_logo.png',
-            height: 52,
-            semanticLabel: 'Pokedex',
-          ),
-          actions: [
-            if (!isMobile)
-              // Opens / closes the favorites panel from the AppBar too.
-              IconButton(
-                tooltip: isPanelOpen ? 'Hide favorites' : 'Show favorites',
-                icon: Badge(
-                  isLabelVisible: favoriteCount > 0,
-                  label: Text('$favoriteCount'),
-                  child: Icon(
-                    isPanelOpen ? Icons.favorite : Icons.favorite_border,
-                  ),
-                ),
-                onPressed: _withClick(
-                  ref.read(favoritesPanelProvider.notifier).toggle,
-                ),
-              ),
-            IconButton(
-              tooltip: isDark ? 'Light mode' : 'Dark mode',
-              icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
-              onPressed: _withClick(
-                ref.read(themeProvider.notifier).toggleTheme,
-              ),
-            ),
-          ],
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(108),
-            child: Column(
+    // Back on the home screen asks for a second press instead of exiting.
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: _handleBack,
+      child: Listener(
+        onPointerDown: (_) => ref.read(musicProvider.notifier).start(),
+        child: Scaffold(
+          appBar: AppBar(
+            toolbarHeight: 72,
+            centerTitle: true,
+            automaticallyImplyActions: false,
+            // Room for the volume slider, which slides out on hover (desktop).
+            leadingWidth: isMobile ? 96 : 216,
+            leading: Row(
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-                  child: TextField(
-                    controller: _searchController,
-                    onChanged: ref.read(searchQueryProvider.notifier).set,
-                    textInputAction: TextInputAction.search,
-                    style: TextStyle(
-                      fontSize: 20,
-                      color: controlTextColor(context),
-                    ),
-                    cursorColor: controlTextColor(context),
-                    decoration: InputDecoration(
-                      hintText: 'Search Pokemon...',
-                      prefixIcon: Icon(
-                        Icons.search,
-                        color: controlTextColor(context),
-                      ),
-                      suffixIcon: query.isEmpty
-                          ? null
-                          : IconButton(
-                              tooltip: 'Clear',
-                              icon: Icon(
-                                Icons.close,
-                                color: controlTextColor(context),
-                              ),
-                              onPressed: _withClick(() {
-                                _searchController.clear();
-                                ref.read(searchQueryProvider.notifier).clear();
-                              }),
-                            ),
-                    ),
-                  ),
+                IconButton(
+                  tooltip: 'Refresh',
+                  icon: const Icon(Icons.refresh),
+                  onPressed: listState.isLoading ? null : _withClick(_refresh),
                 ),
-                _buildTypeFilter(selectedType),
-                const SizedBox(height: 8),
+                const VolumeControl(),
               ],
             ),
-          ),
-        ),
-        endDrawer: isMobile ? FavoritesDrawer(onOpen: _openDetails) : null,
-        body: Stack(
-          children: [
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: const AssetImage('assets/pokedex_background.jpg'),
-                    fit: BoxFit.cover,
-                    colorFilter: isDark
-                        ? ColorFilter.mode(
-                            Colors.black.withValues(alpha: 0.6),
-                            BlendMode.srcATop,
-                          )
-                        : null,
+            title: Image.asset(
+              'assets/pokedex_logo.png',
+              height: 52,
+              semanticLabel: 'Pokedex',
+            ),
+            actions: [
+              if (!isMobile)
+                // Opens / closes the favorites panel from the AppBar too.
+                IconButton(
+                  tooltip: isPanelOpen ? 'Hide favorites' : 'Show favorites',
+                  icon: Badge(
+                    isLabelVisible: favoriteCount > 0,
+                    label: Text('$favoriteCount'),
+                    child: Icon(
+                      isPanelOpen ? Icons.favorite : Icons.favorite_border,
+                    ),
+                  ),
+                  onPressed: _withClick(
+                    ref.read(favoritesPanelProvider.notifier).toggle,
                   ),
                 ),
-                child: SafeArea(
-                  // Keep content above transparent system nav bars.
-                  top: false,
-                  child: Column(
-                    children: [
-                      if (!isMobile) FavoritesPanel(onOpen: _openDetails),
-                      Expanded(child: _buildBody(listState)),
-                    ],
-                  ),
+              IconButton(
+                tooltip: isDark ? 'Light mode' : 'Dark mode',
+                icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
+                onPressed: _withClick(
+                  ref.read(themeProvider.notifier).toggleTheme,
                 ),
+              ),
+            ],
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(108),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: ref.read(searchQueryProvider.notifier).set,
+                      textInputAction: TextInputAction.search,
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: controlTextColor(context),
+                      ),
+                      cursorColor: controlTextColor(context),
+                      decoration: InputDecoration(
+                        hintText: 'Search Pokemon...',
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: controlTextColor(context),
+                        ),
+                        suffixIcon: query.isEmpty
+                            ? null
+                            : IconButton(
+                                tooltip: 'Clear',
+                                icon: Icon(
+                                  Icons.close,
+                                  color: controlTextColor(context),
+                                ),
+                                onPressed: _withClick(() {
+                                  _searchController.clear();
+                                  ref
+                                      .read(searchQueryProvider.notifier)
+                                      .clear();
+                                }),
+                              ),
+                      ),
+                    ),
+                  ),
+                  _buildTypeFilter(selectedType),
+                  const SizedBox(height: 8),
+                ],
               ),
             ),
-            if (isMobile)
-              const Positioned.fill(
-                child: SafeArea(top: false, child: FavoritesFab()),
+          ),
+          endDrawer: isMobile ? FavoritesDrawer(onOpen: _openDetails) : null,
+          body: Stack(
+            children: [
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: const AssetImage('assets/pokedex_background.jpg'),
+                      fit: BoxFit.cover,
+                      colorFilter: isDark
+                          ? ColorFilter.mode(
+                              Colors.black.withValues(alpha: 0.6),
+                              BlendMode.srcATop,
+                            )
+                          : null,
+                    ),
+                  ),
+                  child: SafeArea(
+                    // Keep content above transparent system nav bars.
+                    top: false,
+                    child: Column(
+                      children: [
+                        if (!isMobile) FavoritesPanel(onOpen: _openDetails),
+                        Expanded(child: _buildBody(listState)),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-          ],
+              if (isMobile)
+                const Positioned.fill(
+                  child: SafeArea(top: false, child: FavoritesFab()),
+                ),
+            ],
+          ),
         ),
       ),
     );
