@@ -169,6 +169,9 @@ class _PokedexScreenState extends ConsumerState<PokedexScreen> {
     final selectedType = ref.watch(typeFilterProvider);
     final favoriteCount = ref.watch(favoritesProvider.select((s) => s.length));
     final isPanelOpen = ref.watch(favoritesPanelProvider);
+    // Phones get a floating favorites button + drawer instead of the
+    // AppBar button and inline panel, which crowd the small screen.
+    final isMobile = MediaQuery.sizeOf(context).width < 600;
 
     return Listener(
       onPointerDown: (_) => ref.read(musicProvider.notifier).start(),
@@ -176,10 +179,18 @@ class _PokedexScreenState extends ConsumerState<PokedexScreen> {
         appBar: AppBar(
           toolbarHeight: 72,
           centerTitle: true,
-          leading: IconButton(
-            tooltip: 'Refresh',
-            icon: const Icon(Icons.refresh),
-            onPressed: listState.isLoading ? null : _withClick(_refresh),
+          automaticallyImplyActions: false,
+          // Room for the volume slider, which slides out on hover (desktop).
+          leadingWidth: isMobile ? 96 : 216,
+          leading: Row(
+            children: [
+              IconButton(
+                tooltip: 'Refresh',
+                icon: const Icon(Icons.refresh),
+                onPressed: listState.isLoading ? null : _withClick(_refresh),
+              ),
+              const VolumeControl(),
+            ],
           ),
           title: Image.asset(
             'assets/pokedex_logo.png',
@@ -187,21 +198,21 @@ class _PokedexScreenState extends ConsumerState<PokedexScreen> {
             semanticLabel: 'Pokedex',
           ),
           actions: [
-            const VolumeControl(),
-            // Opens / closes the favorites panel from the AppBar too.
-            IconButton(
-              tooltip: isPanelOpen ? 'Hide favorites' : 'Show favorites',
-              icon: Badge(
-                isLabelVisible: favoriteCount > 0,
-                label: Text('$favoriteCount'),
-                child: Icon(
-                  isPanelOpen ? Icons.favorite : Icons.favorite_border,
+            if (!isMobile)
+              // Opens / closes the favorites panel from the AppBar too.
+              IconButton(
+                tooltip: isPanelOpen ? 'Hide favorites' : 'Show favorites',
+                icon: Badge(
+                  isLabelVisible: favoriteCount > 0,
+                  label: Text('$favoriteCount'),
+                  child: Icon(
+                    isPanelOpen ? Icons.favorite : Icons.favorite_border,
+                  ),
+                ),
+                onPressed: _withClick(
+                  ref.read(favoritesPanelProvider.notifier).toggle,
                 ),
               ),
-              onPressed: _withClick(
-                ref.read(favoritesPanelProvider.notifier).toggle,
-              ),
-            ),
             IconButton(
               tooltip: isDark ? 'Light mode' : 'Dark mode',
               icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
@@ -253,6 +264,8 @@ class _PokedexScreenState extends ConsumerState<PokedexScreen> {
             ),
           ),
         ),
+        endDrawer: isMobile ? FavoritesDrawer(onOpen: _openDetails) : null,
+        floatingActionButton: !isMobile ? null : const FavoritesFab(),
         body: Container(
           decoration: BoxDecoration(
             image: DecorationImage(
@@ -268,7 +281,7 @@ class _PokedexScreenState extends ConsumerState<PokedexScreen> {
           ),
           child: Column(
             children: [
-              FavoritesPanel(onOpen: _openDetails),
+              if (!isMobile) FavoritesPanel(onOpen: _openDetails),
               Expanded(child: _buildBody(listState)),
             ],
           ),

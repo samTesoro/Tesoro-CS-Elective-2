@@ -38,10 +38,11 @@ final searchQueryProvider = NotifierProvider<SearchQueryNotifier, String>(
 final filteredPokemonProvider = Provider<List<Pokemon>>((ref) {
   final all = ref.watch(loadedPokemonProvider);
   final type = ref.watch(typeFilterProvider);
-  final q = ref.watch(searchQueryProvider).trim().toLowerCase().replaceFirst(
-    '#',
-    '',
-  );
+  final q = ref
+      .watch(searchQueryProvider)
+      .trim()
+      .toLowerCase()
+      .replaceFirst('#', '');
   final number = int.tryParse(q);
 
   return all

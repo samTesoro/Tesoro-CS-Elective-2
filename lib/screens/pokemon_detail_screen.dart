@@ -37,23 +37,39 @@ class PokemonDetailScreen extends ConsumerWidget {
     final isDark = ref.watch(themeProvider) == ThemeMode.dark;
     final isPanelOpen = ref.watch(favoritesPanelProvider);
     final theme = Theme.of(context);
+    // Phones use a floating button + drawer instead of the inline panel.
+    final isMobile = MediaQuery.sizeOf(context).width < 600;
+
+    // Opening another favorite from here replaces this page.
+    void openFavorite(int id) {
+      if (id == pokemonId) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(
+          builder: (_) => PokemonDetailScreen(pokemonId: id),
+        ),
+      );
+    }
 
     return Scaffold(
+      endDrawer: isMobile ? FavoritesDrawer(onOpen: openFavorite) : null,
+      floatingActionButton: isMobile ? const FavoritesFab() : null,
       appBar: AppBar(
         toolbarHeight: 72,
+        automaticallyImplyActions: false,
         title: Text(
           pokemon?.displayName ?? 'Pokemon',
           style: const TextStyle(fontSize: 28),
         ),
         actions: [
-          IconButton(
-            tooltip: isPanelOpen ? 'Hide favorites' : 'Show favorites',
-            icon: Icon(isPanelOpen ? Icons.favorite : Icons.favorite_border),
-            onPressed: () {
-              ref.read(musicProvider.notifier).playClick();
-              ref.read(favoritesPanelProvider.notifier).toggle();
-            },
-          ),
+          if (!isMobile)
+            IconButton(
+              tooltip: isPanelOpen ? 'Hide favorites' : 'Show favorites',
+              icon: Icon(isPanelOpen ? Icons.favorite : Icons.favorite_border),
+              onPressed: () {
+                ref.read(musicProvider.notifier).playClick();
+                ref.read(favoritesPanelProvider.notifier).toggle();
+              },
+            ),
         ],
       ),
       body: Container(
@@ -71,17 +87,7 @@ class PokemonDetailScreen extends ConsumerWidget {
         ),
         child: Column(
           children: [
-            // Opening another favorite from here replaces this page.
-            FavoritesPanel(
-              onOpen: (id) {
-                if (id == pokemonId) return;
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute<void>(
-                    builder: (_) => PokemonDetailScreen(pokemonId: id),
-                  ),
-                );
-              },
-            ),
+            if (!isMobile) FavoritesPanel(onOpen: openFavorite),
             Expanded(
               child: pokemon == null
                   ? const StatusView(

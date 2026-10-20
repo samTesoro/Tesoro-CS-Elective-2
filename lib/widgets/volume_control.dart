@@ -40,6 +40,11 @@ class _VolumeControlState extends ConsumerState<VolumeControl> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          IconButton(
+            tooltip: music.isMuted ? 'Unmute music' : 'Mute music',
+            icon: Icon(_icon(music)),
+            onPressed: _toggleMute,
+          ),
           ClipRect(
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 180),
@@ -48,7 +53,7 @@ class _VolumeControlState extends ConsumerState<VolumeControl> {
               child: OverflowBox(
                 minWidth: _sliderWidth,
                 maxWidth: _sliderWidth,
-                alignment: Alignment.centerRight,
+                alignment: Alignment.centerLeft,
                 child: SliderTheme(
                   data: SliderTheme.of(context).copyWith(
                     trackHeight: 4,
@@ -72,11 +77,6 @@ class _VolumeControlState extends ConsumerState<VolumeControl> {
                 ),
               ),
             ),
-          ),
-          IconButton(
-            tooltip: music.isMuted ? 'Unmute music' : 'Mute music',
-            icon: Icon(_icon(music)),
-            onPressed: _toggleMute,
           ),
         ],
       ),
