@@ -14,16 +14,12 @@ import '../widgets/pokemon_card.dart';
 import '../widgets/status_view.dart';
 import '../widgets/type_badge.dart';
 
-/// Pushes the details page for the Pokemon with [id].
 void openPokemonDetails(BuildContext context, int id) {
   Navigator.of(context).push(
     MaterialPageRoute<void>(builder: (_) => PokemonDetailScreen(pokemonId: id)),
   );
 }
 
-/// Details page. Only the ID travels through the route; the Pokemon, its
-/// nickname and its favorite status are all read from Riverpod, so editing
-/// the nickname here updates the grid card at the same time.
 class PokemonDetailScreen extends ConsumerWidget {
   final int pokemonId;
 
@@ -38,10 +34,8 @@ class PokemonDetailScreen extends ConsumerWidget {
     final isDark = ref.watch(themeProvider) == ThemeMode.dark;
     final isPanelOpen = ref.watch(favoritesPanelProvider);
     final theme = Theme.of(context);
-    // Phones use a floating button + drawer instead of the inline panel.
     final isMobile = MediaQuery.sizeOf(context).width < 600;
 
-    // Opening another favorite from here replaces this page.
     void openFavorite(int id) {
       if (id == pokemonId) return;
       Navigator.of(context).pushReplacement(
@@ -89,7 +83,6 @@ class PokemonDetailScreen extends ConsumerWidget {
                 ),
               ),
               child: SafeArea(
-                // Keep content above transparent system nav bars.
                 top: false,
                 child: Column(
                   children: [
@@ -159,12 +152,9 @@ class PokemonDetailScreen extends ConsumerWidget {
                                           ),
                                         ),
                                         Stack(
-                                          // Keep the card's full width so the
-                                          // text stays centered.
                                           fit: StackFit.passthrough,
                                           children: [
                                             Padding(
-                                              // Side room for the corner icons.
                                               padding:
                                                   const EdgeInsets.symmetric(
                                                     horizontal: 52,
@@ -184,8 +174,6 @@ class PokemonDetailScreen extends ConsumerWidget {
                                                         ),
                                                   ),
                                                   const SizedBox(height: 4),
-                                                  // Nickname as the headline when set;
-                                                  // the original name stays visible.
                                                   Text(
                                                     nickname == null
                                                         ? pokemon.displayName

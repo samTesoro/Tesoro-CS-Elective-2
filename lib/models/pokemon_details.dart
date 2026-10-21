@@ -1,22 +1,15 @@
-/// Extra info shown on the details page, fetched on demand per Pokemon
-/// from `/pokemon/{id}` and `/pokemon-species/{id}`.
 class PokemonDetails {
-  /// Pokedex entry text (English), e.g. "A strange seed was planted...".
   final String bio;
 
-  /// Category, e.g. "Seed Pokemon".
   final String genus;
 
-  /// In metres / kilograms (the API gives decimetres / hectograms).
   final double heightM;
   final double weightKg;
 
   final List<String> abilities;
 
-  /// Audio URL of the Pokémon's cry (.ogg), or null if PokeAPI has none.
   final String? cryUrl;
 
-  /// Base stats in API order: HP, Attack, Defense, Sp. Atk, Sp. Def, Speed.
   final List<PokemonStat> stats;
 
   const PokemonDetails({
@@ -42,10 +35,10 @@ class PokemonDetails {
     }
 
     return PokemonDetails(
-      bio: _english(species['flavor_text_entries'], 'flavor_text')
-          // Entries contain hard line/page breaks from the games.
-          .replaceAll(RegExp(r'[\n\f\r]+'), ' ')
-          .replaceAll('POKEMON', 'Pokemon'),
+      bio: _english(
+        species['flavor_text_entries'],
+        'flavor_text',
+      ).replaceAll(RegExp(r'[\n\f\r]+'), ' ').replaceAll('POKEMON', 'Pokemon'),
       cryUrl: switch (pokemon['cries']) {
         {'latest': final String url} => url,
         {'legacy': final String url} => url,
@@ -74,7 +67,6 @@ class PokemonDetails {
     );
   }
 
-  /// Latest English entry from a localized list, or '' if none.
   static String _english(Object? entries, String field) {
     if (entries is! List) return '';
     final english = entries.whereType<Map<String, dynamic>>().where(
@@ -87,8 +79,6 @@ class PokemonDetails {
     return value is String ? _plainE(value) : '';
   }
 
-  /// The pixel font has no accented e, so "Pokémon" falls back to another
-  /// font at a different size. Swap it for a plain e.
   static String _plainE(String text) =>
       text.replaceAll('é', 'e').replaceAll('É', 'E');
 
@@ -99,7 +89,6 @@ class PokemonDetails {
 }
 
 class PokemonStat {
-  /// API name, e.g. "special-attack".
   final String name;
   final int value;
 

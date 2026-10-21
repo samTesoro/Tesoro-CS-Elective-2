@@ -5,11 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/pokemon.dart';
 import 'pokemon_list_notifier.dart';
 
-/// Features 3 & 4 — Favorite Pokemon and the heart indicator.
-///
-/// State is the set of favorite Pokemon IDs, in the order they were added.
-/// IDs (not Pokemon objects) are stored so favorites survive a refresh of
-/// the list.
 class FavoritesNotifier extends Notifier<Set<int>> {
   @override
   Set<int> build() => const <int>{};
@@ -21,7 +16,7 @@ class FavoritesNotifier extends Notifier<Set<int>> {
 
   void add(int pokemonId) {
     if (isFavorite(pokemonId)) return;
-    state = <int>{...state, pokemonId}; // new Set -> listeners are notified
+    state = <int>{...state, pokemonId};
   }
 
   void remove(int pokemonId) {
@@ -34,8 +29,6 @@ final favoritesProvider = NotifierProvider<FavoritesNotifier, Set<int>>(
   FavoritesNotifier.new,
 );
 
-/// The favorite Pokemon objects for the favorites panel. Recomputes
-/// automatically when a favorite is added/removed or the list reloads.
 final favoritePokemonProvider = Provider<List<Pokemon>>((ref) {
   final ids = ref.watch(favoritesProvider);
   final byId = {for (final p in ref.watch(loadedPokemonProvider)) p.id: p};
@@ -45,8 +38,6 @@ final favoritePokemonProvider = Provider<List<Pokemon>>((ref) {
   ];
 });
 
-/// Whether the favorites panel is expanded. Kept in app state (not in a
-/// widget) so the panel stays open/closed as you move between screens.
 class FavoritesPanelNotifier extends Notifier<bool> {
   @override
   bool build() => false;
@@ -62,9 +53,6 @@ final favoritesPanelProvider = NotifierProvider<FavoritesPanelNotifier, bool>(
   FavoritesPanelNotifier.new,
 );
 
-/// Where the mobile favorites button was dragged to (top-left, in body
-/// coordinates). `null` until first dragged, meaning the bottom-right corner.
-/// Shared so the button stays put between the home and details screens.
 class FavoritesFabPositionNotifier extends Notifier<Offset?> {
   @override
   Offset? build() => null;

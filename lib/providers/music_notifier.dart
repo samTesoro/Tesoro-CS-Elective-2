@@ -4,10 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/music_service.dart';
 import 'service_providers.dart';
 
-/// What the volume control shows.
 typedef MusicState = ({bool isMuted, double volume});
 
-/// Background music + click sounds (moved from Provider to Riverpod).
 class MusicNotifier extends Notifier<MusicState> {
   MusicService get _music => ref.read(musicServiceProvider);
 
@@ -15,7 +13,6 @@ class MusicNotifier extends Notifier<MusicState> {
   MusicState build() {
     final music = ref.watch(musicServiceProvider);
 
-    // Pause the music when the app is hidden, resume when it comes back.
     final lifecycle = AppLifecycleListener(
       onHide: music.pause,
       onShow: music.resume,

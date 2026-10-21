@@ -8,14 +8,7 @@ import '../providers/nickname_notifier.dart';
 import '../theme.dart';
 import 'pokemon_card.dart' show PokemonImage;
 
-/// Feature 3 — the retractable favorites panel.
-///
-/// Placed at the top of both the home and the details screen. Whether it is
-/// open lives in `favoritesPanelProvider`, so it stays open or closed across
-/// screens. Its contents come from `favoritePokemonProvider`, so it updates
-/// the moment a heart is tapped anywhere in the app.
 class FavoritesPanel extends ConsumerWidget {
-  /// Called when a favorite is tapped (opens its details page).
   final ValueChanged<int> onOpen;
 
   const FavoritesPanel({super.key, required this.onOpen});
@@ -39,7 +32,6 @@ class FavoritesPanel extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Header: always visible, tap to expand / collapse.
           Semantics(
             button: true,
             expanded: isOpen,
@@ -66,7 +58,6 @@ class FavoritesPanel extends ConsumerWidget {
               ),
             ),
           ),
-          // Body: animates open / closed.
           AnimatedSize(
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeOut,
@@ -117,10 +108,7 @@ class FavoritesPanel extends ConsumerWidget {
   }
 }
 
-/// Mobile variant of the favorites panel: a side drawer with a grid of
-/// favorites, opened from a floating button instead of sitting above the grid.
 class FavoritesDrawer extends ConsumerWidget {
-  /// Called when a favorite is tapped (opens its details page).
   final ValueChanged<int> onOpen;
 
   const FavoritesDrawer({super.key, required this.onOpen});
@@ -235,7 +223,6 @@ class _FavoriteTile extends ConsumerWidget {
                 padding: const EdgeInsets.all(4),
                 child: Column(
                   children: [
-                    // No Hero here: the grid card already owns the hero tag.
                     Expanded(child: PokemonImage(url: pokemon.imageUrl)),
                     Text(
                       nickname ?? pokemon.displayName,
@@ -268,16 +255,9 @@ class _FavoriteTile extends ConsumerWidget {
   }
 }
 
-/// Mobile floating favorites button: a small square pixel box with a
-/// pixel-art heart and a boxy count badge. Tap to open the nearest
-/// Scaffold's end drawer; drag to move it anywhere over the body.
-///
-/// Fills its parent (put it in a `Positioned.fill` over the body) so it
-/// knows how far it can be dragged; only the button itself takes touches.
 class FavoritesFab extends ConsumerWidget {
   static const _size = 48.0;
 
-  /// Keeps the button (and its badge) clear of the edges.
   static const _margin = 16.0;
 
   const FavoritesFab({super.key});
@@ -292,7 +272,6 @@ class FavoritesFab extends ConsumerWidget {
       builder: (context, constraints) {
         final maxX = constraints.maxWidth - _size - _margin;
         final maxY = constraints.maxHeight - _size - _margin;
-        // Clamped on every build so it stays on screen after a resize.
         Offset clamp(Offset o) => Offset(
           o.dx.clamp(_margin, maxX < _margin ? _margin : maxX),
           o.dy.clamp(_margin, maxY < _margin ? _margin : maxY),
@@ -371,7 +350,6 @@ class FavoritesFab extends ConsumerWidget {
   }
 }
 
-/// A heart drawn as a grid of square pixels.
 class PixelHeart extends StatelessWidget {
   final double size;
 
@@ -383,7 +361,6 @@ class PixelHeart extends StatelessWidget {
 }
 
 class _PixelHeartPainter extends CustomPainter {
-  // 0 = empty, 1 = outline, 2 = fill, 3 = highlight.
   static const _grid = [
     [0, 1, 1, 0, 0, 0, 1, 1, 0],
     [1, 3, 2, 1, 0, 1, 2, 2, 1],

@@ -58,7 +58,6 @@ class PokemonService {
     }
   }
 
-  /// Bio, profile and base stats for the details page.
   Future<PokemonDetails> fetchDetails(int id) async {
     try {
       final [pokemon, species] = await Future.wait([

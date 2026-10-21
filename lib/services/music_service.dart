@@ -83,8 +83,6 @@ class MusicService {
 
   AudioPlayer? _cryPlayer;
 
-  /// Plays a Pokémon cry from a URL, mixed over the music. Ignores mute so
-  /// pressing the button always does something; uses the volume slider level.
   Future<void> playCry(String url) async {
     try {
       final player = _cryPlayer ??= AudioPlayer();

@@ -53,11 +53,9 @@ class _PokeballPainter extends CustomPainter {
       ..strokeWidth = stroke
       ..color = pixelBorderColor;
 
-    // Top (red) and bottom (white) halves.
     canvas.drawArc(ballRect, math.pi, math.pi, true, fill..color = mainRed);
     canvas.drawArc(ballRect, 0, math.pi, true, fill..color = Colors.white);
 
-    // Middle band and outer ring.
     canvas.drawLine(
       Offset(center.dx - innerRadius, center.dy),
       Offset(center.dx + innerRadius, center.dy),
@@ -65,7 +63,6 @@ class _PokeballPainter extends CustomPainter {
     );
     canvas.drawCircle(center, innerRadius, outline);
 
-    // Center button.
     final buttonRadius = radius * 0.28;
     canvas.drawCircle(center, buttonRadius, fill..color = Colors.white);
     canvas.drawCircle(center, buttonRadius, outline);

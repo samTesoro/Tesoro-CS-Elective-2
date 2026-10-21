@@ -5,7 +5,6 @@ import '../models/pokemon.dart';
 import '../providers/music_notifier.dart';
 import '../providers/nickname_notifier.dart';
 
-/// Opens the nickname editor for [pokemon].
 Future<void> showNicknameEditor(BuildContext context, Pokemon pokemon) {
   return showDialog<void>(
     context: context,
@@ -13,11 +12,6 @@ Future<void> showNicknameEditor(BuildContext context, Pokemon pokemon) {
   );
 }
 
-/// Feature 2 — Nickname Editor: a text input, Save, and Remove.
-///
-/// This is a ConsumerStatefulWidget only because a TextField needs a
-/// TextEditingController (which must be disposed). The nickname itself is
-/// stored in `nicknameProvider` when the user taps Save — not here.
 class NicknameDialog extends ConsumerStatefulWidget {
   final Pokemon pokemon;
 
@@ -34,7 +28,6 @@ class _NicknameDialogState extends ConsumerState<NicknameDialog> {
   @override
   void initState() {
     super.initState();
-    // Pre-fill with the existing nickname so it can be edited.
     _current = ref.read(nicknameProvider)[widget.pokemon.id];
     _controller = TextEditingController(text: _current ?? '');
   }
@@ -94,8 +87,6 @@ class _NicknameDialogState extends ConsumerState<NicknameDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
-        // Save is only enabled when there is text. ValueListenableBuilder
-        // rebuilds just this button as the user types.
         ValueListenableBuilder<TextEditingValue>(
           valueListenable: _controller,
           builder: (context, value, _) => ElevatedButton(

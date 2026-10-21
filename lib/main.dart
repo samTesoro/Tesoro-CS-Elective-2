@@ -6,8 +6,6 @@ import 'screens/pokedex_screen.dart';
 import 'theme.dart';
 
 void main() {
-  // ProviderScope stores the state of every Riverpod provider in the app.
-  // It replaces the MultiProvider we used with the Provider package.
   runApp(const ProviderScope(child: MyApp()));
 }
 

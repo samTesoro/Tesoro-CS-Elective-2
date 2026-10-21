@@ -8,11 +8,6 @@ import '../providers/nickname_notifier.dart';
 import '../theme.dart';
 import 'type_badge.dart';
 
-/// Grid card: image, ID, types, original name, nickname (if any) and a
-/// heart for the favorite status.
-///
-/// It is a ConsumerWidget that `watch`es ONLY its own nickname and favorite
-/// flag (via `select`), so editing one Pokemon rebuilds just that card.
 class PokemonCard extends ConsumerWidget {
   final Pokemon pokemon;
   final VoidCallback? onTap;
@@ -97,8 +92,6 @@ class PokemonCard extends ConsumerWidget {
                       ],
                     ),
                     const SizedBox(height: 2),
-                    // Nickname (if set) on top; the original name is always
-                    // shown.
                     if (nickname != null) ...[
                       Text(
                         '"$nickname"',
@@ -130,8 +123,6 @@ class PokemonCard extends ConsumerWidget {
   }
 }
 
-/// Feature 4 — the heart. Filled red when the Pokemon is a favorite,
-/// outlined when not. Tapping it calls FavoritesNotifier.toggle().
 class FavoriteHeartButton extends ConsumerWidget {
   final int pokemonId;
   final double size;
@@ -163,7 +154,6 @@ class FavoriteHeartButton extends ConsumerWidget {
   }
 }
 
-/// Network image with its own loading and error states.
 class PokemonImage extends StatelessWidget {
   final String url;
 

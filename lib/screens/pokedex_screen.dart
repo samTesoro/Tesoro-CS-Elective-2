@@ -19,10 +19,6 @@ import '../widgets/type_badge.dart';
 import '../widgets/volume_control.dart';
 import 'pokemon_detail_screen.dart';
 
-/// Home page: Pokemon grid + search + type filter + favorites panel.
-///
-/// ConsumerStatefulWidget only because it owns the search box's
-/// TextEditingController. Every value on screen comes from Riverpod.
 class PokedexScreen extends ConsumerStatefulWidget {
   const PokedexScreen({super.key});
 
@@ -38,7 +34,6 @@ class _PokedexScreenState extends ConsumerState<PokedexScreen> {
   @override
   void initState() {
     super.initState();
-    // First load: the same fetch() method that refresh uses.
     ref.read(pokemonListProvider.notifier).fetch();
     ref.read(musicProvider.notifier).start();
   }
@@ -54,12 +49,10 @@ class _PokedexScreenState extends ConsumerState<PokedexScreen> {
     action();
   };
 
-  /// Refresh = RECALL the existing fetch() method (no new method).
   Future<void> _refresh() => ref.read(pokemonListProvider.notifier).fetch();
 
   void _openDetails(int id) => openPokemonDetails(context, id);
 
-  /// When back was last pressed on this screen, for "press again to exit".
   DateTime? _lastBackPress;
 
   void _handleBack(bool didPop, Object? result) {
@@ -90,7 +83,6 @@ class _PokedexScreenState extends ConsumerState<PokedexScreen> {
         itemCount: PokemonType.values.length + 1,
         separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
-          // Index 0 is "All", which clears the filter.
           final type = index == 0 ? null : PokemonType.values[index - 1];
           return TypeFilterChip(
             type: type,
@@ -106,12 +98,10 @@ class _PokedexScreenState extends ConsumerState<PokedexScreen> {
   }
 
   Widget _buildBody(AsyncValue<List<Pokemon>> listState) {
-    // Loading state
     if (listState.isLoading) {
       return const Center(child: PokeballSpinner(size: 80));
     }
 
-    // Error state
     if (listState.hasError) {
       return StatusView(
         icon: Icons.wifi_off_rounded,
@@ -121,7 +111,6 @@ class _PokedexScreenState extends ConsumerState<PokedexScreen> {
       );
     }
 
-    // Success state
     final all = ref.watch(loadedPokemonProvider);
     if (all.isEmpty) {
       return StatusView(
@@ -136,7 +125,6 @@ class _PokedexScreenState extends ConsumerState<PokedexScreen> {
     return RefreshIndicator(
       onRefresh: _refresh,
       child: results.isEmpty
-          // ListView so pull-to-refresh still works on the "no match" view.
           ? ListView(
               physics: const AlwaysScrollableScrollPhysics(),
               children: [_buildNoMatch()],
@@ -192,11 +180,8 @@ class _PokedexScreenState extends ConsumerState<PokedexScreen> {
     final selectedType = ref.watch(typeFilterProvider);
     final favoriteCount = ref.watch(favoritesProvider.select((s) => s.length));
     final isPanelOpen = ref.watch(favoritesPanelProvider);
-    // Phones get a floating favorites button + drawer instead of the
-    // AppBar button and inline panel, which crowd the small screen.
     final isMobile = MediaQuery.sizeOf(context).width < 600;
 
-    // Back on the home screen asks for a second press instead of exiting.
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: _handleBack,
@@ -207,7 +192,6 @@ class _PokedexScreenState extends ConsumerState<PokedexScreen> {
             toolbarHeight: 72,
             centerTitle: true,
             automaticallyImplyActions: false,
-            // Room for the volume slider, which slides out on hover (desktop).
             leadingWidth: isMobile ? 96 : 216,
             leading: Row(
               children: [
@@ -226,7 +210,6 @@ class _PokedexScreenState extends ConsumerState<PokedexScreen> {
             ),
             actions: [
               if (!isMobile)
-                // Opens / closes the favorites panel from the AppBar too.
                 IconButton(
                   tooltip: isPanelOpen ? 'Hide favorites' : 'Show favorites',
                   icon: Badge(
@@ -311,7 +294,6 @@ class _PokedexScreenState extends ConsumerState<PokedexScreen> {
                     ),
                   ),
                   child: SafeArea(
-                    // Keep content above transparent system nav bars.
                     top: false,
                     child: Column(
                       children: [

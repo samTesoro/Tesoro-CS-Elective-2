@@ -7,7 +7,6 @@ import '../providers/pokemon_list_notifier.dart';
 import '../theme.dart';
 import 'pokeball_spinner.dart';
 
-/// "About" section on the details page: Pokedex bio, profile and base stats.
 class PokemonAbout extends ConsumerWidget {
   final int pokemonId;
 
@@ -49,8 +48,6 @@ class PokemonAbout extends ConsumerWidget {
   }
 }
 
-/// Speaker icon that plays the Pokémon's cry. Shares the About section's
-/// fetch; shows nothing until the cry URL is known (or if there is none).
 class PokemonCryButton extends ConsumerWidget {
   final int pokemonId;
 
@@ -180,7 +177,6 @@ class _InfoBox extends StatelessWidget {
   }
 }
 
-/// One stat as a label, number and a segmented, boxy bar.
 class _StatRow extends StatelessWidget {
   static const _maxStat = 255;
 

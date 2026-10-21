@@ -8,7 +8,6 @@ class StatusView extends StatelessWidget {
   final String message;
   final VoidCallback? onRetry;
 
-  /// Button text/icon; defaults to "Try Again" for retrying a fetch.
   final String actionLabel;
   final IconData actionIcon;
 

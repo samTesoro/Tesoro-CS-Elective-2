@@ -4,21 +4,9 @@ import '../models/pokemon.dart';
 import '../models/pokemon_details.dart';
 import 'service_providers.dart';
 
-/// Feature 1 — Pokemon List Management.
-///
-/// Holds the Pokemon list as an `AsyncValue`, which already models the three
-/// states the exam asks for:
-///   AsyncLoading -> show the Pokeball spinner
-///   AsyncData    -> show the grid
-///   AsyncError   -> show the error message + Try Again
-///
-/// [fetch] is the ONLY method that talks to the API. The first load and
-/// every refresh (pull-to-refresh, Refresh button, Try Again) call it.
 class PokemonListNotifier extends Notifier<AsyncValue<List<Pokemon>>> {
   static const pokemonLimit = 30;
 
-  /// Increases on every fetch so a slow, older response can't overwrite a
-  /// newer one (e.g. Refresh tapped twice quickly).
   int _requestId = 0;
 
   @override
@@ -27,17 +15,13 @@ class PokemonListNotifier extends Notifier<AsyncValue<List<Pokemon>>> {
   Future<void> fetch() async {
     final requestId = ++_requestId;
 
-    // Already loading on the very first call (initial state), so we only
-    // switch to loading when coming from data or error.
     if (!state.isLoading) state = const AsyncLoading<List<Pokemon>>();
 
-    // AsyncValue.guard runs the Future and turns a thrown exception into
-    // AsyncError instead of crashing.
     final result = await AsyncValue.guard(
       () => ref.read(pokemonServiceProvider).fetchPokemon(limit: pokemonLimit),
     );
 
-    if (requestId != _requestId) return; // a newer fetch started; drop this
+    if (requestId != _requestId) return;
     state = result;
   }
 }
@@ -47,8 +31,6 @@ final pokemonListProvider =
       PokemonListNotifier.new,
     );
 
-/// The loaded list, or an empty list while loading / on error.
-/// Other providers build on this instead of repeating the AsyncValue check.
 final loadedPokemonProvider = Provider<List<Pokemon>>((ref) {
   return switch (ref.watch(pokemonListProvider)) {
     AsyncData(:final value) => value,
@@ -56,7 +38,6 @@ final loadedPokemonProvider = Provider<List<Pokemon>>((ref) {
   };
 });
 
-/// Looks up one Pokemon by ID (used by the details screen).
 final pokemonByIdProvider = Provider.family<Pokemon?, int>((ref, id) {
   for (final pokemon in ref.watch(loadedPokemonProvider)) {
     if (pokemon.id == id) return pokemon;
@@ -64,8 +45,6 @@ final pokemonByIdProvider = Provider.family<Pokemon?, int>((ref, id) {
   return null;
 });
 
-/// Bio, profile and stats for one Pokemon, fetched when its details page
-/// opens. Cached while the page is open; refetched next time if it failed.
 final pokemonDetailsProvider = FutureProvider.autoDispose
     .family<PokemonDetails, int>((ref, id) {
       return ref.read(pokemonServiceProvider).fetchDetails(id);
