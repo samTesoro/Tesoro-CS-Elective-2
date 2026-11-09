@@ -123,10 +123,8 @@ class CheckoutScreen extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  // Clear the cart
                   onCheckoutComplete();
 
-                  // Return to home screen
                   context.go('/');
                 },
                 child: const Text('Continue Shopping'),

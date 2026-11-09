@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'providers/cart_provider.dart';
+import 'providers/product_provider.dart';
 import 'router.dart';
+import 'services/product_service.dart';
 import 'supabase_config.dart';
 import 'theme.dart';
 
@@ -12,7 +16,17 @@ Future<void> main() async {
     publishableKey: SupabaseConfig.anonKey,
   );
 
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => ProductProvider(ProductService())..fetchProducts(),
+        ),
+        ChangeNotifierProvider(create: (_) => CartProvider()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 final supabase = Supabase.instance.client;

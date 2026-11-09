@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
 import '../models/product.dart';
+import '../providers/cart_provider.dart';
+import '../providers/product_provider.dart';
+import '../widgets/product_form_dialog.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
-  final Function(Product, int) onAddToCart;
 
   const ProductDetailScreen({
     super.key,
     required this.product,
-    required this.onAddToCart,
   });
 
   @override
@@ -18,6 +22,84 @@ class ProductDetailScreen extends StatefulWidget {
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int quantity = 1;
+  late Product _product = widget.product;
+  bool _isBusy = false;
+
+  Future<void> _editProduct() async {
+    final edited = await ProductFormDialog.show(context, _product);
+    if (edited == null || !mounted) return;
+
+    setState(() => _isBusy = true);
+    final messenger = ScaffoldMessenger.of(context);
+
+    try {
+      final saved = await context.read<ProductProvider>().updateProduct(edited);
+      if (!mounted) return;
+      context.read<CartProvider>().syncProduct(saved);
+      setState(() => _product = saved);
+      messenger.showSnackBar(
+        SnackBar(content: Text('${saved.name} updated')),
+      );
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Update failed: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isBusy = false);
+    }
+  }
+
+  Future<void> _deleteProduct() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete product?'),
+        content: Text(
+          '"${_product.name}" will be permanently removed from the shop.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(dialogContext).colorScheme.error,
+              foregroundColor: Theme.of(dialogContext).colorScheme.onError,
+            ),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isBusy = true);
+    final messenger = ScaffoldMessenger.of(context);
+
+    try {
+      await context.read<ProductProvider>().deleteProduct(_product.id);
+      if (!mounted) return;
+      context.read<CartProvider>().removeProduct(_product.id);
+      messenger.showSnackBar(
+        SnackBar(content: Text('${_product.name} deleted')),
+      );
+      context.pop();
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Delete failed: $e')),
+      );
+      if (mounted) setState(() => _isBusy = false);
+    }
+  }
+
+  void _addToCart() {
+    context.read<CartProvider>().add(_product, quantity);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('${_product.name} added to cart')),
+    );
+  }
 
   void increaseQuantity() {
     setState(() {
@@ -36,11 +118,30 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final product = widget.product;
+    final product = _product;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Product Details'),
+        actions: [
+          IconButton(
+            tooltip: 'Edit product',
+            onPressed: _isBusy ? null : _editProduct,
+            icon: const Icon(Icons.edit_outlined),
+          ),
+          IconButton(
+            tooltip: 'Delete product',
+            onPressed: _isBusy ? null : _deleteProduct,
+            icon: const Icon(Icons.delete_outline),
+          ),
+          const SizedBox(width: 8),
+        ],
+        bottom: _isBusy
+            ? const PreferredSize(
+                preferredSize: Size.fromHeight(4),
+                child: LinearProgressIndicator(),
+              )
+            : null,
       ),
 
       body: LayoutBuilder(
@@ -74,17 +175,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       theme: theme,
                       onDecrease: decreaseQuantity,
                       onIncrease: increaseQuantity,
-                      onAddToCart: () {
-                        widget.onAddToCart(product, quantity);
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              '${product.name} added to cart',
-                            ),
-                          ),
-                        );
-                      },
+                      onAddToCart: _addToCart,
                     ),
                   ),
                 ],
@@ -123,17 +214,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         theme: theme,
                         onDecrease: decreaseQuantity,
                         onIncrease: increaseQuantity,
-                        onAddToCart: () {
-                          widget.onAddToCart(product, quantity);
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                '${product.name} added to cart',
-                              ),
-                            ),
-                          );
-                        },
+                        onAddToCart: _addToCart,
                       ),
                     ],
                   ),

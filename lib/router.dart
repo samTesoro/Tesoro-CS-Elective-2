@@ -26,17 +26,11 @@ GoRouter createRouter(
       ),
 
       GoRoute(
-        path: '/product/:name',
+        path: '/product/:id',
         builder: (context, state) {
-          final extra = state.extra as Map<String, dynamic>;
-          final product = extra['product'] as Product;
-          final onAddToCart =
-              extra['onAddToCart'] as Function(Product, int);
+          final product = state.extra as Product;
 
-          return ProductDetailScreen(
-            product: product,
-            onAddToCart: onAddToCart,
-          );
+          return ProductDetailScreen(product: product);
         },
       ),
 

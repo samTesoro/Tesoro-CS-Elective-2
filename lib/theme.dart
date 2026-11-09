@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-// Main Brand Colors
 const mainRed = Color(0xFFC8102E);
 const darkRed = Color(0xFF8E0B20);
 const accentRed = Color(0xFFE31B23);
