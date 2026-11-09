@@ -13,6 +13,8 @@ class ProductService {
   Future<List<Product>> fetchProducts({
     String? category,
     String search = '',
+    double? minPrice,
+    double? maxPrice,
   }) async {
     var query = _client.from(_table).select();
 
@@ -27,9 +29,40 @@ class ProductService {
       );
     }
 
+    if (minPrice != null) {
+      query = query.gte('price', minPrice);
+    }
+
+    if (maxPrice != null) {
+      query = query.lte('price', maxPrice);
+    }
+
     final rows = await query.order('id', ascending: true);
 
     return rows.map(Product.fromMap).toList();
+  }
+
+  Future<({double min, double max})> fetchPriceBounds() async {
+    final lowest = await _client
+        .from(_table)
+        .select('price')
+        .order('price', ascending: true)
+        .limit(1);
+
+    final highest = await _client
+        .from(_table)
+        .select('price')
+        .order('price', ascending: false)
+        .limit(1);
+
+    if (lowest.isEmpty || highest.isEmpty) {
+      return (min: 0.0, max: 0.0);
+    }
+
+    return (
+      min: (lowest.first['price'] as num).toDouble(),
+      max: (highest.first['price'] as num).toDouble(),
+    );
   }
 
   Future<Product> updateProduct(Product product) async {

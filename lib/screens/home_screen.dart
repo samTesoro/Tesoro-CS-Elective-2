@@ -290,6 +290,69 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildPriceFilter(ThemeData theme, ProductProvider provider) {
+    if (!provider.hasPriceBounds) return const SizedBox.shrink();
+
+    final min = provider.minPriceBound;
+    final max = provider.maxPriceBound;
+    final start = provider.minPrice.clamp(min, max);
+    final end = provider.maxPrice.clamp(start, max);
+
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: ExpansionTile(
+        shape: const Border(),
+        collapsedShape: const Border(),
+        tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+        childrenPadding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+        leading: Icon(Icons.tune, color: theme.colorScheme.primary),
+        title: Text('Price range', style: theme.textTheme.titleMedium),
+        subtitle: Text(
+          provider.isPriceFiltered
+              ? '${_peso(start)} – ${_peso(end)}'
+              : 'Any price',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: provider.isPriceFiltered
+                ? theme.colorScheme.primary
+                : theme.colorScheme.onSurfaceVariant,
+            fontWeight:
+                provider.isPriceFiltered ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+        children: [
+          RangeSlider(
+            values: RangeValues(start, end),
+            min: min,
+            max: max,
+            divisions: ((max - min) / ProductProvider.priceStep).round(),
+            labels: RangeLabels(_peso(start), _peso(end)),
+            onChanged: (values) =>
+                provider.previewPriceRange(values.start, values.end),
+            onChangeEnd: (values) =>
+                provider.applyPriceRange(values.start, values.end),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Text(_peso(min), style: theme.textTheme.bodySmall),
+                const Spacer(),
+                TextButton(
+                  onPressed:
+                      provider.isPriceFiltered ? provider.resetPriceRange : null,
+                  child: const Text('Reset'),
+                ),
+                const Spacer(),
+                Text(_peso(max), style: theme.textTheme.bodySmall),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildProducts(ThemeData theme, ProductProvider provider) {
     if (provider.status == ProductStatus.loading && provider.products.isEmpty) {
       return const Padding(
@@ -312,7 +375,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return _MessageView(
         icon: Icons.search_off_outlined,
         title: 'No products found',
-        message: 'Try a different search or category.',
+        message: 'Try a different search, category, or price range.',
         actionLabel: provider.hasActiveFilters ? 'Clear filters' : null,
         onAction: provider.hasActiveFilters ? _clearFilters : null,
       );
@@ -429,6 +492,9 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 16),
 
               _buildFilterChips(provider),
+              const SizedBox(height: 16),
+
+              _buildPriceFilter(theme, provider),
               const SizedBox(height: 8),
 
               _buildProducts(theme, provider),
@@ -475,6 +541,18 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+}
+
+String _peso(double value) {
+  final digits = value.round().toString();
+  final buffer = StringBuffer();
+
+  for (var i = 0; i < digits.length; i++) {
+    if (i > 0 && (digits.length - i) % 3 == 0) buffer.write(',');
+    buffer.write(digits[i]);
+  }
+
+  return '₱$buffer';
 }
 
 class _ProductGrid extends StatelessWidget {
