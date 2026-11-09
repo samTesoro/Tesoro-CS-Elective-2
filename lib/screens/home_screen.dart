@@ -386,7 +386,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 8),
 
               Text(
-                'Results for "${_searchQuery}"',
+                'Results for "$_searchQuery"',
                 style: theme.textTheme.bodyMedium,
               ),
 
