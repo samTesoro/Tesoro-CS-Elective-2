@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/product.dart';
 import '../services/product_service.dart';
@@ -18,6 +19,7 @@ class ProductProvider extends ChangeNotifier {
   final ProductService _service;
 
   static const double priceStep = 100;
+  static const int pageSize = 8;
 
   ProductProvider(this._service);
 
@@ -33,6 +35,9 @@ class ProductProvider extends ChangeNotifier {
   double _minPrice = 0;
   double _maxPrice = 0;
 
+  int _page = 0;
+  int _totalCount = 0;
+
   Timer? _searchDebounce;
   int _requestId = 0;
 
@@ -41,6 +46,14 @@ class ProductProvider extends ChangeNotifier {
   String get errorMessage => _errorMessage;
   String? get selectedCategory => _selectedCategory;
   String get search => _search;
+  int get page => _page;
+  int get totalCount => _totalCount;
+  int get totalPages => _totalCount == 0 ? 1 : (_totalCount / pageSize).ceil();
+  bool get hasPreviousPage => _page > 0;
+  bool get hasNextPage => _page < totalPages - 1;
+  int get firstItemNumber => _totalCount == 0 ? 0 : _page * pageSize + 1;
+  int get lastItemNumber => _page * pageSize + _products.length;
+
   double get minPriceBound => _minPriceBound;
   double get maxPriceBound => _maxPriceBound;
   double get minPrice => _minPrice;
@@ -69,10 +82,30 @@ class ProductProvider extends ChangeNotifier {
         search: _search,
         minPrice: isPriceFiltered ? _minPrice : null,
         maxPrice: isPriceFiltered ? _maxPrice : null,
+        page: _page,
+        pageSize: pageSize,
       );
       if (requestId != _requestId) return;
-      _products = result;
+
+      if (result.products.isEmpty && _page > 0) {
+        _page = result.totalCount == 0
+            ? 0
+            : ((result.totalCount - 1) / pageSize).floor();
+        return fetchProducts();
+      }
+
+      _products = result.products;
+      _totalCount = result.totalCount;
       _status = ProductStatus.success;
+    } on PostgrestException catch (e) {
+      if (requestId != _requestId) return;
+      if (e.code == 'PGRST103' && _page > 0) {
+        final remaining = _totalCount - 1;
+        _page = remaining <= 0 ? 0 : (remaining - 1) ~/ pageSize;
+        return fetchProducts();
+      }
+      _errorMessage = e.message;
+      _status = ProductStatus.error;
     } catch (e) {
       if (requestId != _requestId) return;
       _errorMessage = '$e';
@@ -80,6 +113,17 @@ class ProductProvider extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  void goToPage(int page) {
+    final target = page.clamp(0, totalPages - 1);
+    if (target == _page) return;
+    _page = target;
+    fetchProducts();
+  }
+
+  void nextPage() => goToPage(_page + 1);
+
+  void previousPage() => goToPage(_page - 1);
 
   Future<void> _loadPriceBounds() async {
     final keepRange = isPriceFiltered;
@@ -111,18 +155,21 @@ class ProductProvider extends ChangeNotifier {
   void applyPriceRange(double start, double end) {
     _minPrice = start;
     _maxPrice = end;
+    _page = 0;
     fetchProducts();
   }
 
   void resetPriceRange() {
     _minPrice = _minPriceBound;
     _maxPrice = _maxPriceBound;
+    _page = 0;
     fetchProducts();
   }
 
   void setCategory(String? category) {
     if (category == _selectedCategory) return;
     _selectedCategory = category;
+    _page = 0;
     fetchProducts();
   }
 
@@ -131,7 +178,10 @@ class ProductProvider extends ChangeNotifier {
     _searchDebounce?.cancel();
     _searchDebounce = Timer(
       const Duration(milliseconds: 350),
-      fetchProducts,
+      () {
+        _page = 0;
+        fetchProducts();
+      },
     );
     notifyListeners();
   }
@@ -142,6 +192,7 @@ class ProductProvider extends ChangeNotifier {
     _search = '';
     _minPrice = _minPriceBound;
     _maxPrice = _maxPriceBound;
+    _page = 0;
     fetchProducts();
   }
 

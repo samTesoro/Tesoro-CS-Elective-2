@@ -10,11 +10,13 @@ class ProductService {
   ProductService([SupabaseClient? client])
       : _client = client ?? Supabase.instance.client;
 
-  Future<List<Product>> fetchProducts({
+  Future<({List<Product> products, int totalCount})> fetchProducts({
     String? category,
     String search = '',
     double? minPrice,
     double? maxPrice,
+    required int page,
+    required int pageSize,
   }) async {
     var query = _client.from(_table).select();
 
@@ -37,9 +39,18 @@ class ProductService {
       query = query.lte('price', maxPrice);
     }
 
-    final rows = await query.order('id', ascending: true);
+    final from = page * pageSize;
+    final to = from + pageSize - 1;
 
-    return rows.map(Product.fromMap).toList();
+    final response = await query
+        .order('id', ascending: true)
+        .range(from, to)
+        .count(CountOption.exact);
+
+    return (
+      products: response.data.map(Product.fromMap).toList(),
+      totalCount: response.count,
+    );
   }
 
   Future<({double min, double max})> fetchPriceBounds() async {

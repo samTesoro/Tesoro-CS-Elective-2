@@ -395,8 +395,30 @@ class _HomeScreenState extends State<HomeScreen> {
           products: provider.products,
           onTap: _openProduct,
         ),
+        if (provider.totalPages > 1) ...[
+          const SizedBox(height: 24),
+          _PaginationBar(
+            page: provider.page,
+            totalPages: provider.totalPages,
+            enabled: provider.status != ProductStatus.loading,
+            onPageSelected: _goToPage,
+          ),
+        ],
       ],
     );
+  }
+
+  void _goToPage(int page) {
+    context.read<ProductProvider>().goToPage(page);
+    _scrollToProducts();
+  }
+
+  String _showingText(ProductProvider provider) {
+    final total = provider.totalCount;
+    if (total == 0) return 'No products';
+    final noun = total == 1 ? 'product' : 'products';
+    return 'Showing ${provider.firstItemNumber}–${provider.lastItemNumber} '
+        'of $total $noun';
   }
 
   @override
@@ -428,7 +450,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: TextField(
                   controller: _searchController,
                   onChanged: provider.setSearch,
+                  textAlignVertical: TextAlignVertical.center,
                   decoration: InputDecoration(
+                    isDense: true,
                     hintText: 'Search products...',
                     prefixIcon: const Icon(Icons.search),
                     suffixIcon: isSearching
@@ -441,9 +465,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           )
                         : null,
                     border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 12,
-                    ),
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    filled: false,
+                    contentPadding: EdgeInsets.zero,
                   ),
                 ),
               ),
@@ -485,8 +510,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 isSearching
                     ? 'Results for "${provider.search.trim()}"'
                         '${provider.selectedCategory != null ? ' in ${provider.selectedCategory}' : ''}'
-                    : '${provider.products.length} product'
-                        '${provider.products.length == 1 ? '' : 's'}',
+                        ' · ${_showingText(provider)}'
+                    : _showingText(provider),
                 style: theme.textTheme.bodyMedium,
               ),
               const SizedBox(height: 16),
@@ -644,6 +669,89 @@ class _MessageView extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _PaginationBar extends StatelessWidget {
+  final int page;
+  final int totalPages;
+  final bool enabled;
+  final ValueChanged<int> onPageSelected;
+
+  const _PaginationBar({
+    required this.page,
+    required this.totalPages,
+    required this.enabled,
+    required this.onPageSelected,
+  });
+
+  static const int _maxVisiblePages = 5;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    var first = page - _maxVisiblePages ~/ 2;
+    if (first < 0) first = 0;
+    var last = first + _maxVisiblePages - 1;
+    if (last > totalPages - 1) {
+      last = totalPages - 1;
+      first = (last - _maxVisiblePages + 1).clamp(0, last);
+    }
+
+    return Column(
+      children: [
+        Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            IconButton.outlined(
+              tooltip: 'Previous page',
+              onPressed: enabled && page > 0
+                  ? () => onPageSelected(page - 1)
+                  : null,
+              icon: const Icon(Icons.chevron_left),
+            ),
+            for (var i = first; i <= last; i++)
+              SizedBox(
+                width: 44,
+                height: 44,
+                child: i == page
+                    ? FilledButton(
+                        onPressed: null,
+                        style: FilledButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          disabledBackgroundColor: theme.colorScheme.primary,
+                          disabledForegroundColor: theme.colorScheme.onPrimary,
+                        ),
+                        child: Text('${i + 1}'),
+                      )
+                    : OutlinedButton(
+                        onPressed: enabled ? () => onPageSelected(i) : null,
+                        style: OutlinedButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                        ),
+                        child: Text('${i + 1}'),
+                      ),
+              ),
+            IconButton.outlined(
+              tooltip: 'Next page',
+              onPressed: enabled && page < totalPages - 1
+                  ? () => onPageSelected(page + 1)
+                  : null,
+              icon: const Icon(Icons.chevron_right),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Page ${page + 1} of $totalPages',
+          style: theme.textTheme.bodySmall,
+        ),
+      ],
     );
   }
 }
