@@ -95,10 +95,20 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   void _addToCart() {
+    final router = GoRouter.of(context);
     context.read<CartProvider>().add(_product, quantity);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${_product.name} added to cart')),
-    );
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text('$quantity × ${_product.name} added to cart'),
+          action: SnackBarAction(
+            label: 'View cart',
+            onPressed: () => router.push('/cart'),
+          ),
+        ),
+      );
+    context.pop();
   }
 
   void increaseQuantity() {
@@ -144,7 +154,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             : null,
       ),
 
-      body: LayoutBuilder(
+      body: SafeArea(
+        child: LayoutBuilder(
         builder: (context, constraints) {
           final isLargeScreen = constraints.maxWidth >= 600;
 
@@ -223,6 +234,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ),
           );
         },
+      ),
       ),
     );
   }

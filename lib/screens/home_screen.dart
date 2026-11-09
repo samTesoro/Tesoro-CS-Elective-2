@@ -84,16 +84,8 @@ class _HomeScreenState extends State<HomeScreen> {
     context.read<ProductProvider>().clearFilters();
   }
 
-  Future<void> _openCart() async {
-    final cart = context.read<CartProvider>();
-    await context.push(
-      '/cart',
-      extra: {
-        'cartItems': cart.items,
-        'onClearCart': cart.clear,
-      },
-    );
-    cart.refresh();
+  void _openCart() {
+    context.push('/cart');
   }
 
   void _openProduct(Product product) {
@@ -443,6 +435,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: Container(
                 height: 44,
+                alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: theme.colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
@@ -454,9 +447,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   decoration: InputDecoration(
                     isDense: true,
                     hintText: 'Search products...',
-                    prefixIcon: const Icon(Icons.search),
+                    prefixIcon: const Icon(Icons.search, size: 22),
+                    prefixIconConstraints: const BoxConstraints.tightFor(
+                      width: 44,
+                      height: 44,
+                    ),
+                    suffixIconConstraints: const BoxConstraints.tightFor(
+                      width: 44,
+                      height: 44,
+                    ),
                     suffixIcon: isSearching
                         ? IconButton(
+                            padding: EdgeInsets.zero,
+                            iconSize: 20,
                             icon: const Icon(Icons.clear),
                             onPressed: () {
                               _searchController.clear();

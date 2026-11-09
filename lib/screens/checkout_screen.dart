@@ -4,12 +4,10 @@ import '../models/cart_item.dart';
 
 class CheckoutScreen extends StatelessWidget {
   final List<CartItem> cartItems;
-  final VoidCallback onCheckoutComplete;
 
   const CheckoutScreen({
     super.key,
     required this.cartItems,
-    required this.onCheckoutComplete,
   });
 
   double get totalPrice {
@@ -28,7 +26,8 @@ class CheckoutScreen extends StatelessWidget {
         title: const Text('Checkout Confirmation'),
         automaticallyImplyLeading: false,
       ),
-      body: Padding(
+      body: SafeArea(
+        child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
@@ -122,16 +121,13 @@ class CheckoutScreen extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  onCheckoutComplete();
-
-                  context.go('/');
-                },
+                onPressed: () => context.go('/'),
                 child: const Text('Continue Shopping'),
               ),
             ),
           ],
         ),
+      ),
       ),
     );
   }

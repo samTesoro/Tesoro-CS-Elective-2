@@ -1,60 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../models/cart_item.dart';
+import 'package:provider/provider.dart';
 
-class CartScreen extends StatefulWidget {
-  final List<CartItem> cartItems;
-  final VoidCallback onClearCart;
+import '../providers/cart_provider.dart';
 
-  const CartScreen({
-    super.key,
-    required this.cartItems,
-    required this.onClearCart,
-  });
-
-  @override
-  State<CartScreen> createState() => _CartScreenState();
-}
-
-class _CartScreenState extends State<CartScreen> {
-  double get totalPrice {
-    return widget.cartItems.fold(
-      0,
-      (total, item) => total + (item.product.price * item.quantity),
-    );
-  }
-
-  void increaseQuantity(CartItem item) {
-    setState(() {
-      item.quantity++;
-    });
-  }
-
-  void decreaseQuantity(CartItem item) {
-    setState(() {
-      if (item.quantity > 1) {
-        item.quantity--;
-      } else {
-        widget.cartItems.remove(item);
-      }
-    });
-  }
-
-  void removeItem(CartItem item) {
-    setState(() {
-      widget.cartItems.remove(item);
-    });
-  }
+class CartScreen extends StatelessWidget {
+  const CartScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final cart = context.watch<CartProvider>();
+    final cartItems = cart.items;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Shopping Cart'),
       ),
-      body: widget.cartItems.isEmpty
+      body: cartItems.isEmpty
           ? const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -76,9 +39,9 @@ class _CartScreenState extends State<CartScreen> {
                 Expanded(
                   child: ListView.builder(
                     padding: const EdgeInsets.all(16),
-                    itemCount: widget.cartItems.length,
+                    itemCount: cartItems.length,
                     itemBuilder: (context, index) {
-                      final item = widget.cartItems[index];
+                      final item = cartItems[index];
                       final subtotal =
                           item.product.price * item.quantity;
 
@@ -133,7 +96,7 @@ class _CartScreenState extends State<CartScreen> {
                                       children: [
                                         IconButton.outlined(
                                           onPressed: () =>
-                                              decreaseQuantity(item),
+                                              cart.decreaseQuantity(item),
                                           style: IconButton.styleFrom(
                                             minimumSize: const Size(
                                               48,
@@ -154,7 +117,7 @@ class _CartScreenState extends State<CartScreen> {
 
                                         IconButton.outlined(
                                           onPressed: () =>
-                                              increaseQuantity(item),
+                                              cart.increaseQuantity(item),
                                           style: IconButton.styleFrom(
                                             minimumSize: const Size(
                                               48,
@@ -170,7 +133,7 @@ class _CartScreenState extends State<CartScreen> {
                               ),
 
                               IconButton(
-                                onPressed: () => removeItem(item),
+                                onPressed: () => cart.removeItem(item),
                                 style: IconButton.styleFrom(
                                   minimumSize: const Size(48, 48),
                                 ),
@@ -211,7 +174,7 @@ class _CartScreenState extends State<CartScreen> {
                               style: theme.textTheme.titleLarge,
                             ),
                             Text(
-                              '₱${totalPrice.toStringAsFixed(2)}',
+                              '₱${cart.totalPrice.toStringAsFixed(2)}',
                               style:
                                   theme.textTheme.titleLarge?.copyWith(
                                 color: theme.colorScheme.primary,
@@ -227,12 +190,10 @@ class _CartScreenState extends State<CartScreen> {
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: () {
-                              context.push(
+                              final order = cart.checkout();
+                              context.pushReplacement(
                                 '/checkout',
-                                extra: {
-                                  'cartItems': widget.cartItems,
-                                  'onCheckoutComplete': widget.onClearCart,
-                                },
+                                extra: order,
                               );
                             },
                             child: const Text('Proceed to Checkout'),
