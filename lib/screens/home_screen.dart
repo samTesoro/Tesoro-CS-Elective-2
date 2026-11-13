@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../models/product.dart';
+import '../providers/auth_provider.dart';
 import '../providers/cart_provider.dart';
 import '../providers/product_provider.dart';
 import '../widgets/product_card.dart';
@@ -423,15 +424,24 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 72,
-        titleSpacing: 16,
+        leadingWidth: 64,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 8),
+          child: IconButton(
+            tooltip: widget.themeMode == ThemeMode.dark
+                ? 'Light mode'
+                : 'Dark mode',
+            onPressed: widget.onToggleTheme,
+            icon: Icon(
+              widget.themeMode == ThemeMode.dark
+                  ? Icons.light_mode_outlined
+                  : Icons.dark_mode_outlined,
+            ),
+          ),
+        ),
+        titleSpacing: 8,
         title: Row(
           children: [
-            Image.asset(
-              'assets/logo.png',
-              height: 60,
-              width: 70,
-            ),
-            const SizedBox(width: 12),
             Expanded(
               child: Container(
                 height: 44,
@@ -479,14 +489,13 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         actions: [
+          const SizedBox(width: 8),
           IconButton(
-            onPressed: widget.onToggleTheme,
-            icon: Icon(
-              widget.themeMode == ThemeMode.dark
-                  ? Icons.light_mode_outlined
-                  : Icons.dark_mode_outlined,
-            ),
+            tooltip: 'Sign out',
+            onPressed: () => context.read<AuthProvider>().signOut(),
+            icon: const Icon(Icons.logout),
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: RefreshIndicator(

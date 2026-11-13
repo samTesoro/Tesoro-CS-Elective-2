@@ -46,3 +46,4 @@ app.*.map.json
 
 # Accidental nested clone of this repo — keep it out of commits
 /Tesoro-CS-Elective-2/
+_to_delete/
